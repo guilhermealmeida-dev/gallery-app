@@ -1,0 +1,53 @@
+{
+  "name": "backend-api",
+  "version": "1.0.0",
+  "description": "Backend do aplicativo gallery-app",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc && cp -r docs dist/docs && cp -r public dist/public",
+    "start": "node dist/server.js",
+    "docker-build": "docker build -t gallery-app-api .",
+    "docker-start": "docker run -it -p 4000:4000 --env-file .env gallery-app-api",
+    "prisma-generate": "prisma generate",
+    "prisma-push": "prisma db push",
+    "prisma-migrate-dev": "prisma migrate dev",
+    "prisma-migrate-reset": "prisma migrate reset",
+    "prisma-status": "prisma migrate status",
+    "prisma-studio": "npx prisma studio",
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/guilhermealmeida-dev/gallery-app.git"
+  },
+  "keywords": [
+    "gallery",
+    "phothos",
+    "app",
+    "uploads"
+  ],
+  "author": "Guilherme Almeida",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/guilhermealmeida-dev/gallery-app/issues"
+  },
+  "homepage": "https://github.com/guilhermealmeida-dev/gallery-app#readme",
+  "dependencies": {
+    "@aws-sdk/client-s3": "^3.1079.0",
+    "@prisma/adapter-pg": "^7.8.0",
+    "@prisma/client": "^7.8.0",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.1.0",
+    "@types/pg": "^8.20.0",
+    "prisma": "^7.8.0",
+    "tsx": "^4.23.0",
+    "typescript": "^6.0.3"
+  }
+}
