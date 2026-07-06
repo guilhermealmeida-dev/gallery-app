@@ -9,6 +9,9 @@ app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');
 });
 
+//Routes
+app.use("/auth",authRoute);
+
 //Middlewares
 app.use(errorLog);
 app.use(errorHandler);
