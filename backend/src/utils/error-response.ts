@@ -1,7 +1,8 @@
-import type { ErrorType } from "../types/error.ts";
-import type { Response } from "express";
 
-export function errorResponse(error: ErrorType, response: Response) {
+import type { Response } from "express";
+import { AppError } from "../types/error.ts";
+
+export function errorResponse(error: AppError, response: Response) {
     response.status(error.status).json({
         error: {
             code: error.code,
