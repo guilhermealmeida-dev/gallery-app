@@ -1,10 +1,6 @@
 import type { Request, Response, NextFunction } from "express";
 import type { RegisterUserDto } from "../schemas/register-user-schema.ts";
 import { registerUserService } from "../services/auth-service.ts";
-<<<<<<< HEAD
-=======
-// import { registerUserService } from "../services/auth-service.ts";
->>>>>>> feat/card-13/storage-provider
 
 export async function registerUserController(request: Request, response: Response, next: NextFunction) {
     try {

@@ -67,7 +67,6 @@ describe("POST /auth/register", () => {
             .field("password", "12345678");
 
 
-<<<<<<< HEAD
         expect(registerUserServiceMock)
             .toHaveBeenCalledTimes(1);
 
@@ -83,8 +82,6 @@ describe("POST /auth/register", () => {
             );
 
 
-=======
->>>>>>> feat/card-13/storage-provider
         expect(response.status)
             .toBe(201);
 
@@ -100,11 +97,6 @@ describe("POST /auth/register", () => {
 
     });
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> feat/card-13/storage-provider
     it("deve retornar 400 quando campos obrigatórios estiverem faltando", async () => {
 
 
@@ -119,13 +111,5 @@ describe("POST /auth/register", () => {
 
         expect(response.headers["content-type"])
             .toMatch(/json/);
-<<<<<<< HEAD
     });
-
-
-=======
-
-    });
-
->>>>>>> feat/card-13/storage-provider
 });
