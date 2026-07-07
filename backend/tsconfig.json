@@ -10,7 +10,7 @@
     "module": "nodenext",
     "target": "es2022",
     "moduleResolution": "nodenext",
-    "types": ["node"],
+    // "types": ["node"],
     "rewriteRelativeImportExtensions": true,
     "skipDefaultLibCheck": true,
     // For nodejs:
@@ -37,10 +37,11 @@
 
     // Recommended Options
     "strict": true,
-    "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true
   }
 }
