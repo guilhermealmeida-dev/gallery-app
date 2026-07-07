@@ -1,12 +1,13 @@
+import dotenv from "dotenv";
 import { exit } from "node:process";
 import app from "./app.js";
-import dotenv from "dotenv";
+import { ENVIROMENTS } from "./env-config.ts";
 
 function startServer() {
     dotenv.config();
 
-    const host = process.env.HOST;
-    const port = Number(process.env.PORT);
+    const host = ENVIROMENTS.host.address??"localhost";
+    const port = ENVIROMENTS.host.port??4000;
 
     if (!host || !port) {
         console.error("Environment variables not provided");

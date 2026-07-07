@@ -3,8 +3,12 @@ import { ZodError } from "zod";
 import { AppError, ERRORS } from "../types/error.ts";
 import { errorResponse } from "../utils/error-response.ts";
 
-export function errorHandler(error: any, request: Request, response: Response, next: NextFunction) {
-
+export function errorHandler(
+    error: unknown,
+    request: Request,
+    response: Response,
+    next: NextFunction
+) {
     if (error instanceof ZodError) {
         const details = error.issues.map((issue) => ({
             field: issue.path.join("."),
@@ -12,18 +16,19 @@ export function errorHandler(error: any, request: Request, response: Response, n
             code: issue.code,
         }));
 
-        const erro: AppError = { ...ERRORS.bodyValidatorError, details };
-        errorResponse(erro, response);
+        return errorResponse(
+            new AppError({ ...ERRORS.bodyValidatorError, details }),
+            response
+        );
     }
 
     if (error instanceof SyntaxError) {
-        const erro = ERRORS.syntaxeJsonError;
-        errorResponse(erro, response);
+        return errorResponse(ERRORS.syntaxeJsonError, response);
     }
 
     if (error instanceof AppError) {
-        errorResponse(error, response);
+        return errorResponse(error, response);
     }
 
-    errorResponse(ERRORS.internalServerError, response);
+    return errorResponse(ERRORS.internalServerError, response);
 }

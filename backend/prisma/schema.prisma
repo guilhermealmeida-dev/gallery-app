@@ -11,3 +11,39 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+model User {
+  id       String @id @default(uuid())
+  name     String
+  email    String @unique
+  password String
+  avatar   String?
+  isVerify Boolean @default(false)
+
+  albums Album[]
+
+  @@map("users")
+}
+
+model Album {
+  id   String @id @default(uuid())
+  name String @unique
+
+  userid String
+
+  user   User    @relation(fields: [userid], references: [id])
+  photos Photo[]
+
+  @@map("albuns")
+}
+
+model Photo {
+  id   String @id @default(uuid())
+  name String
+
+  albumid String
+
+  album Album @relation(fields: [albumid], references: [id])
+
+  @@map("photos")
+}

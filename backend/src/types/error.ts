@@ -1,10 +1,20 @@
 export class AppError {
-    constructor(
-        public code: string,
-        public message: string,
-        public status: ErrorStatus,
-        public details?: unknown
-    ) {}
+  public code: string;
+  public message: string;
+  public status: ErrorStatus;
+  public details?: unknown;
+
+  constructor(props: {
+    code: string;
+    message: string;
+    status: ErrorStatus;
+    details?: unknown;
+  }) {
+    this.code = props.code;
+    this.message = props.message;
+    this.status = props.status;
+    this.details = props.details;
+  }
 }
 
 export enum ErrorStatus {
@@ -42,6 +52,20 @@ export const ERRORS = {
     syntaxeJsonError: {
         code: "syntaxe_json",
         message: "Json Inválido",
+        status: ErrorStatus.BAD_REQUEST,
+        details: null
+    },
+
+    invalidImageTypeError: {
+        code: "invalid_image_type",
+        message: "A imagem deve estar no formato PNG ou JPEG",
+        status: ErrorStatus.BAD_REQUEST,
+        details: null
+    },
+
+    emailAlreadyExists: {
+        code: "email_already_exists",
+        message: "O email informado já está cadastrado.",
         status: ErrorStatus.BAD_REQUEST,
         details: null
     },
