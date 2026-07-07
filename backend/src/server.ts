@@ -7,7 +7,7 @@ import { createBucket } from "./providers/s3-storage.ts";
 function startServer() {
     dotenv.config();
 
-    const host = ENVIROMENTS.host.address ?? "localhost";
+    const host = ENVIROMENTS.host.host ?? "localhost";
     const port = ENVIROMENTS.host.port ?? 4000;
 
     if (!host || !port) {

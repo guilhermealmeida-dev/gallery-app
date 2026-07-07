@@ -1,14 +1,16 @@
 type ENVIROMENTSTYPE = {
     host: {
-        readonly address: string;
+        readonly host: string;
         readonly port: number;
+        readonly endpoint: string;
+
     },
     database: {
         readonly url: string;
         readonly direct_url: string;
     },
     storage: {
-        readonly endpoint:string;
+        readonly endpoint: string;
         readonly region: string;
         buckets: {
             readonly profiles: string;
@@ -22,8 +24,11 @@ type ENVIROMENTSTYPE = {
 
 export const ENVIROMENTS: ENVIROMENTSTYPE = {
     host: {
-        get address() { return process.env.host!; },
-        get port() { return Number(process.env.PORT!); }
+        get host() { return process.env.host!; },
+        get port() { return Number(process.env.PORT!); },
+        get endpoint() {
+            return `http://${this.host}:${this.port}`;
+        }
     },
     database: {
         get url() {
@@ -34,7 +39,7 @@ export const ENVIROMENTS: ENVIROMENTSTYPE = {
         },
     },
     storage: {
-        get endpoint(){return process.env.STORAGE_ENDPOINT!},
+        get endpoint() { return process.env.STORAGE_ENDPOINT! },
         get region() { return process.env.STORAGE_REGION! },
         get access_key_id() { return process.env.STORAGE_ACCESS_KEY_ID! },
         get secret_key() { return process.env.STORAGE_SECRET_KEY! },
