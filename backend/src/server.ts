@@ -1,8 +1,14 @@
+<<<<<<< HEAD
 import dotenv from "dotenv";
 import { exit } from "node:process";
 import app from "./app.js";
 import { ENVIROMENTS } from "./env-config.ts";
 import { createBucket } from "./providers/s3-storage.ts";
+=======
+import { exit } from "node:process";
+import app from "./app.js";
+import dotenv from "dotenv";
+>>>>>>> chore/card-5/configurar-back-end
 
 function startServer() {
     dotenv.config();
