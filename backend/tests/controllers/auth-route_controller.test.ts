@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import {
     afterAll,
     beforeEach,
@@ -36,10 +37,25 @@ const { default: app } = await import(
     "../../src/app.js"
 );
 
+=======
+import { describe, it, expect, jest, beforeAll, afterAll } from "@jest/globals";
+import request from "supertest";
+import app from "../../src/app.js";
+
+beforeAll(() => {
+    jest.spyOn(console, "log")
+        .mockImplementation(() => {});
+});
+
+afterAll(() => {
+    jest.restoreAllMocks();
+});
+>>>>>>> feat/card-13/storage-provider
 
 describe("POST /auth/register", () => {
 
 
+<<<<<<< HEAD
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -60,6 +76,11 @@ describe("POST /auth/register", () => {
         } as CrateUserOutput);
 
 
+=======
+    it("deve retornar 201 quando o body for válido", async () => {
+
+
+>>>>>>> feat/card-13/storage-provider
         const response = await request(app)
             .post("/auth/register")
             .field("name", "John Doe")
@@ -67,6 +88,7 @@ describe("POST /auth/register", () => {
             .field("password", "12345678");
 
 
+<<<<<<< HEAD
         expect(registerUserServiceMock)
             .toHaveBeenCalledTimes(1);
 
@@ -82,6 +104,8 @@ describe("POST /auth/register", () => {
             );
 
 
+=======
+>>>>>>> feat/card-13/storage-provider
         expect(response.status)
             .toBe(201);
 
@@ -97,6 +121,11 @@ describe("POST /auth/register", () => {
 
     });
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> feat/card-13/storage-provider
     it("deve retornar 400 quando campos obrigatórios estiverem faltando", async () => {
 
 
@@ -111,7 +140,13 @@ describe("POST /auth/register", () => {
 
         expect(response.headers["content-type"])
             .toMatch(/json/);
+<<<<<<< HEAD
     });
 
 
+=======
+
+    });
+
+>>>>>>> feat/card-13/storage-provider
 });
