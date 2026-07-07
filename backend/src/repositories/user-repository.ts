@@ -1,6 +1,6 @@
 import { UserCreateInput } from "../../generated/prisma/models.ts";
 import { UpdateUser } from "../types/user.ts";
-import { prisma } from "../utils/prisma-client.ts";
+import { prisma } from "../providers/prisma-client.ts";
 
 //Busca usuurio pelo email
 export async function findUserByEmailRepository(email: string) {
