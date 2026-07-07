@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import {
     afterAll,
     beforeEach,
@@ -37,25 +36,10 @@ const { default: app } = await import(
     "../../src/app.js"
 );
 
-=======
-import { describe, it, expect, jest, beforeAll, afterAll } from "@jest/globals";
-import request from "supertest";
-import app from "../../src/app.js";
-
-beforeAll(() => {
-    jest.spyOn(console, "log")
-        .mockImplementation(() => {});
-});
-
-afterAll(() => {
-    jest.restoreAllMocks();
-});
->>>>>>> feat/card-13/storage-provider
 
 describe("POST /auth/register", () => {
 
 
-<<<<<<< HEAD
     beforeEach(() => {
         jest.clearAllMocks();
     });
@@ -76,11 +60,6 @@ describe("POST /auth/register", () => {
         } as CrateUserOutput);
 
 
-=======
-    it("deve retornar 201 quando o body for válido", async () => {
-
-
->>>>>>> feat/card-13/storage-provider
         const response = await request(app)
             .post("/auth/register")
             .field("name", "John Doe")
