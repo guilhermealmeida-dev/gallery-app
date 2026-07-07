@@ -2,7 +2,7 @@ import { type Request, type Response, Router, type NextFunction } from "express"
 import { requestBodyValidator } from "../middlewares/request-body-validator.ts";
 import { registerUserSchema } from "../schemas/register-user-schema.ts";
 import { registerUserController } from "../controllers/auth-controller.ts";
-import { upload } from "../utils/multer.ts";
+import { upload } from "../utils/upload.ts";
 import { validateSingleImage } from "../middlewares/validate-single-image.ts";
 
 const router = Router();
