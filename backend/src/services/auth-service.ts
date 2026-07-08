@@ -7,6 +7,7 @@ import { UploadOptions } from "../types/upload.ts";
 import { ENVIROMENTS } from "../env-config.ts";
 import { confirmEmailTemplate } from "../providers/mail/confirm-email-template.ts";
 import { sendEmail } from "../providers/mail/node-mail.ts";
+import { v4 as uuidv4 } from 'uuid';
 
 //Servico de registro de usuario
 export async function registerUserService(dto: RegisterUserDto, avatar?: Express.Multer.File): Promise<void> {
@@ -29,8 +30,9 @@ export async function registerUserService(dto: RegisterUserDto, avatar?: Express
         await updateUserRepository(userCreated.id, { avatar: avatarUrl })
     }
 
-    //TODO: Criar url de confirmação
-    const template = confirmEmailTemplate({ name: userCreated.name, confirmationUrl: "utl" });
+    const confirmationToken = uuidv4();
+    const confirmationUrl=`${ENVIROMENTS.hosts.api.url}/auth/confirm-email?token=${confirmationToken}`
+    const template = confirmEmailTemplate({ name: userCreated.name, confirmationUrl: confirmationUrl });
     await sendEmail({
         to: userCreated.email,
         subject: "Confirmação de email",

@@ -8,8 +8,8 @@ import { verfyMail } from "./providers/mail/node-mail.ts";
 function startServer() {
     dotenv.config();
 
-    const host = ENVIROMENTS.host.host ?? "localhost";
-    const port = ENVIROMENTS.host.port ?? 4000;
+    const host = ENVIROMENTS.hosts.api.host ?? "localhost";
+    const port = ENVIROMENTS.hosts.api.port ?? 4000;
 
     if (!host || !port) {
         console.error("Environment variables not provided");

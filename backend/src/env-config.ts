@@ -1,9 +1,13 @@
 type ENVIROMENTSTYPE = {
-    host: {
-        readonly host: string;
-        readonly port: number;
-        readonly endpoint: string;
-
+    hosts: {
+        api: {
+            readonly host: string;
+            readonly port: number;
+            readonly url: string;
+        }
+        front: {
+            readonly url: string;
+        }
     },
     database: {
         readonly url: string;
@@ -33,11 +37,18 @@ type ENVIROMENTSTYPE = {
 };
 
 export const ENVIROMENTS: ENVIROMENTSTYPE = {
-    host: {
-        get host() { return process.env.host!; },
-        get port() { return Number(process.env.PORT!); },
-        get endpoint() {
-            return `http://${this.host}:${this.port}`;
+    hosts: {
+        api: {
+            get host() { return process.env.API_HOST!; },
+            get port() { return Number(process.env.API_PORT!); },
+            get url() {
+                return process.env.API_URL!;
+            }
+        },
+        front: {
+            get url() {
+                return process.env.FRONT_URL!;
+            }
         }
     },
     database: {
