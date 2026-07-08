@@ -1,0 +1,30 @@
+{
+  "ErrorModel": {
+    "type": "object",
+    "title": "ErrorModel",
+    "properties": {
+      "error": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string",
+            "example": "Descrição do erro ocorrido."
+          },
+          "code": {
+            "type": "string",
+            "example": "error_code_exemplo"
+          },
+          "details": {
+            "type": "object",
+            "description": "Informações adicionais sobre o erro.",
+            "example": {
+              "campo": ["Mensagem específica do erro."]
+            }
+          }
+        },
+        "required": ["message", "code"]
+      }
+    },
+    "required": ["error"]
+  }
+}

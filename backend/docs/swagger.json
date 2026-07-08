@@ -1,0 +1,25 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Gallery App API",
+    "description": "API para gerenciamento da aplicação Gallery App.",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:4000",
+      "description": "Servidor local"
+    }
+  ],
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ],
+  "paths": {  },
+  "components": {
+    "securitySchemes": {
+      "$ref": "./components/security-schemes.json"
+    }
+  }
+}
