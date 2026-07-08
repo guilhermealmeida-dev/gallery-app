@@ -26,7 +26,7 @@ export async function verfyMail() {
 export async function sendEmail(props: Email) {
     try {
         await transporter.sendMail({
-            from: props.from,
+            from: ENVIROMENTS.mail.auth.user,
             to: props.to,
             subject: props.subject,
             text: props.text,

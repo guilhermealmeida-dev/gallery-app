@@ -5,6 +5,8 @@ import { AppError, ERRORS } from "../types/error.ts";
 import { uploadStorageFile } from "../providers/s3-storage.ts";
 import { UploadOptions } from "../types/upload.ts";
 import { ENVIROMENTS } from "../env-config.ts";
+import { confirmEmailTemplate } from "../providers/mail/confirm-email-template.ts";
+import { sendEmail } from "../providers/mail/node-mail.ts";
 
 //Servico de registro de usuario
 export async function registerUserService(dto: RegisterUserDto, avatar?: Express.Multer.File): Promise<void> {
@@ -27,6 +29,12 @@ export async function registerUserService(dto: RegisterUserDto, avatar?: Express
         await updateUserRepository(userCreated.id, { avatar: avatarUrl })
     }
 
-    //TODO: Enviar email de confirmação
+    //TODO: Criar url de confirmação
+    const template = confirmEmailTemplate({ name: userCreated.name, confirmationUrl: "utl" });
+    await sendEmail({
+        to: userCreated.email,
+        subject: "Confirmação de email",
+        html: template
+    });
     return;
 }
