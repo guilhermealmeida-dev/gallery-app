@@ -1,0 +1,51 @@
+{
+  "post": {
+    "summary": "Cadastro de Usuário",
+    "description": "Realiza o cadastro de um novo usuário e envia um código de confirmação para o e-mail informado.",
+    "tags": ["Auth"],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/auth-schema.json#/AuthRegisterUserInputSchema"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "title": "RegisterMemberOutputSchema",
+              "description": "Resposta retornada após o cadastro do membro.",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "description": "Mensagem informando o envio do código de confirmação.",
+                  "example": "Emeil de confirmação enviado."
+                }
+              },
+              "required": ["message"]
+            }
+          }
+        }
+      },
+
+      "400": {
+        "$ref": "../../components/responses.json#/ValidatorRequest-BadRequest"
+      },
+
+      "409": {
+        "$ref": "../../components/responses.json#/ConflictError"
+      },
+
+      "500": {
+        "$ref": "../../components/responses.json#/InternalServerError"
+      }
+    }
+  }
+}

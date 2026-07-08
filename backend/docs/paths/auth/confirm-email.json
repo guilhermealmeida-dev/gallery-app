@@ -1,0 +1,45 @@
+{
+  "get": {
+    "summary": "Confirmação de e-mail do Membro",
+    "description": "Confirma o e-mail de um membro a partir de um token de verificação enviado por e-mail.",
+    "tags": ["Auth"],
+    "parameters": [
+      {
+        "name": "token",
+        "in": "query",
+        "required": true,
+        "description": "Token de confirmação de e-mail do membro",
+        "schema": {
+          "type": "string",
+          "example": "c2f5e1a9-9c3b-4d2a-a7c1-123456abcdef"
+        }
+      }
+    ],
+    "responses": {
+      "200": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "E-mail confirmado com sucesso."
+                }
+              },
+              "required": ["message"]
+            }
+          }
+        }
+      },
+      "401": {
+        "$ref": "../../components/responses.json#/TokenError"
+      },
+
+      "500": {
+        "$ref": "../../components/responses.json#/InternalServerError"
+      }
+    }
+  }
+}

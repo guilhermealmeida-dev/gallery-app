@@ -11,13 +11,39 @@
       "description": "Servidor local"
     }
   ],
+  "tags": [
+    {
+      "name": "Auth",
+      "description": "Operações de autenticação"
+    },
+    {
+      "name": "Users",
+      "description": "Operações relacionadas aos usuários"
+    }
+  ],
   "security": [
     {
       "BearerAuth": []
     }
   ],
-  "paths": {  },
+  "paths": {
+    "/auth/register": {
+      "$ref": "./paths/auth/register.json"
+    },
+    "/auth/login": {
+      "$ref": "./paths/auth/sign-in.json"
+    },
+    "/auth/confirm-email/{token}": {
+      "$ref": "./paths/auth/confirm-email.json"
+    }
+  },
   "components": {
+    "schemas": {
+      "$ref": "./components/schemas-index.json"
+    },
+    "responses": {
+      "$ref": "./components/responses.json"
+    },
     "securitySchemes": {
       "$ref": "./components/security-schemes.json"
     }

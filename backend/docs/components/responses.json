@@ -1,0 +1,249 @@
+{
+  "InternalServerError": {
+    "description": "Error: Internal Server Error",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            { "$ref": "./schemas/generic-schema.json#/ErrorModel" },
+            {
+              "properties": {
+                "error": {
+                  "properties": {
+                    "message": {
+                      "example": "Erro interno no servidor."
+                    },
+                    "code": {
+                      "example": "internal_error"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "ValidatorRequest-BadRequest": {
+    "description": "Bad Request",
+    "content": {
+      "application/json": {
+        "schema": {
+          "$ref": "./schemas/generic-schema.json#/ErrorModel"
+        },
+        "examples": {
+          "ValidatorBodyExample": {
+            "summary": "Erro de validação do body",
+            "value": {
+              "error": {
+                "message": "Informe todos os campos corretamente.",
+                "code": "schema_validator",
+                "details": {
+                  "password": [
+                    "Tipo inválido: esperado string, recebido undefined"
+                  ]
+                }
+              }
+            }
+          },
+          "InvalidJsonExample": {
+            "summary": "JSON inválido",
+            "value": {
+              "error": {
+                "message": "JSON inválido",
+                "code": "invalid_json",
+                "details": "Expected double-quoted property name in JSON at position 35 (line 4 column 1)"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+
+  "ConflictError": {
+    "description": "Error: Conflict",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            {
+              "$ref": "./schemas/generic-schema.json#/ErrorModel"
+            },
+            {
+              "properties": {
+                "error": {
+                  "properties": {
+                    "message": {
+                      "example": "O email informado já está cadastrado."
+                    },
+                    "code": {
+                      "example": "email_already_exists"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "TokenError": {
+    "description": "Unauthorized",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            {
+              "$ref": "./schemas/generic-schema.json#/ErrorModel"
+            },
+            {
+              "properties": {
+                "error": {
+                  "properties": {
+                    "message": {
+                      "example": "Erro ao validar token."
+                    },
+                    "code": {
+                      "example": "token-error"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "Auth-Unauthorized": {
+    "description": "Falha na autenticação.",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            { "$ref": "./schemas/generic-schema.json#/ErrorModel" },
+            {
+              "properties": {
+                "error": {
+                  "properties": {
+                    "message": {
+                      "example": "Autenticação necessária."
+                    },
+                    "code": {
+                      "example": "auth_required"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "InvalidCredentials": {
+    "description": "Error: Unauthorized",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            { "$ref": "./schemas/generic-schema.json#/ErrorModel" },
+            {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Credenciais inválidas."
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "invalid_credentials"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "Forbidden": {
+    "description": "Ação não permitida.",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            { "$ref": "./schemas/generic-schema.json#/ErrorModel" },
+            {
+              "properties": {
+                "error": {
+                  "properties": {
+                    "message": {
+                      "example": "Esta conta foi desativada e não pode ser utilizada."
+                    },
+                    "code": {
+                      "example": "forbidden"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "NotFoundError": {
+    "description": "Recurso não encontrado",
+    "content": {
+      "application/json": {
+        "schema": {
+          "type": "object",
+          "properties": {
+            "message": {
+              "type": "string",
+              "example": "Recurso não encontrado"
+            }
+          }
+        }
+      }
+    }
+  }
+}

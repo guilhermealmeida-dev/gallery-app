@@ -1,0 +1,38 @@
+{
+  "post": {
+    "summary": "Autenticação de Membro",
+    "description": "Realiza a autenticação do usuário comum (Membro) e retorna um token JWT junto com as informações do usuário autenticado.",
+    "tags": ["Auth"],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/auth-schema.json#/AuthenticateInputSchema"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "OK",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/auth-schema.json#/AuthenticateOutputSchema"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "../../components/responses.json#/ValidatorRequest-BadRequest"
+      },
+      "401": {
+        "$ref": "../../components/responses.json#/InvalidCredentials"
+      },
+      "500": {
+        "$ref": "../../components/responses.json#/InternalServerError"
+      }
+    }
+  }
+}
