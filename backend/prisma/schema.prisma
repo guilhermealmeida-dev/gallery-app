@@ -20,9 +20,21 @@ model User {
   avatar   String?
   isVerify Boolean @default(false)
 
+  emailConfirmation EmailConfirmation?
   albums Album[]
 
   @@map("users")
+}
+
+model EmailConfirmation {
+  id       String @id @default(uuid())
+  token String @unique
+
+  userid String @unique
+
+  user   User    @relation(fields: [userid], references: [id]) 
+
+  @@map("email-confirmation")
 }
 
 model Album {

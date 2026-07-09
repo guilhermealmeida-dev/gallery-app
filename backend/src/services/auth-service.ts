@@ -10,6 +10,7 @@ import { sendEmail } from "../providers/mail/node-mail.ts";
 import { v4 as uuidv4 } from 'uuid';
 import { UserOutputDto } from "../types/user.ts";
 import { isValid } from "zod/v3";
+import { createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
 
 //Servico de registro de usuario
 export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?: Express.Multer.File): Promise<void> {
@@ -18,7 +19,7 @@ export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?
         throw new AppError(ERRORS.emailAlreadyExists);
     }
 
-    const hashPassword = await bcrypt.hash(dto.password,10);
+    const hashPassword = await bcrypt.hash(dto.password, 10);
     const userCreated = await createUserRepository({ ...dto, password: hashPassword });
 
     const options: UploadOptions = {
@@ -33,6 +34,7 @@ export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?
     }
 
     const confirmationToken = uuidv4();
+    await createEmailConfirmationReposytory(userCreated.id, confirmationToken);
     const confirmationUrl = `${ENVIROMENTS.hosts.api.url}/auth/confirm-email?token=${confirmationToken}`
     const template = confirmEmailTemplate({ name: userCreated.name, confirmationUrl: confirmationUrl });
     await sendEmail({
@@ -69,4 +71,16 @@ export async function loginUserService(dto: AuthLoginUserInputDto): Promise<User
         email: userdb.email,
         avatar: avatar
     };
+}
+
+export async function confirmEmailService(token: string): Promise<void> {
+    const emailConfirmation = await findEmailConfirmationRepository(token);
+
+    if (!emailConfirmation) {
+        throw new AppError(ERRORS.invalidToken); 
+    }
+
+    await updateUserRepository(emailConfirmation.userid, { isVerify: true });
+    await deletEmailConfirmationReposytory(emailConfirmation.id);
+    return;
 }

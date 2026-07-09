@@ -3,11 +3,14 @@ import { errorLog } from './middlewares/error-log.ts';
 import { errorHandler } from './middlewares/error-handler.ts';
 import { authRoute } from './routes/auth-routes.ts';
 import { swaggerInit } from './swagger.ts';
+import path from 'node:path';
 
 const app: Express = express();
 
 //Configs
 app.use(json())
+app.set("view engine", "pug");
+app.set("views", path.join(process.cwd(), "/src/views"));
 
 app.get('/', (req: Request, res: Response) => {
   res.send('Hello World!');

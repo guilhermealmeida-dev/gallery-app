@@ -132,6 +132,39 @@
       }
     }
   },
+  
+  "InvalidToken": {
+    "description": "Bad Request",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            {
+              "$ref": "./schemas/generic-schema.json#/ErrorModel"
+            },
+            {
+              "properties": {
+                "error": {
+                  "properties": {
+                    "message": {
+                      "example": "Token inválido."
+                    },
+                    "code": {
+                      "example": "invalid_token"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
 
   "Auth-Unauthorized": {
     "description": "Falha na autenticação.",

@@ -73,14 +73,22 @@ export const ERRORS = {
     invalidCredentials: {
         code: "invalid_credentials",
         message: "Credenciais inválidas. Verifique seu e-mail e senha.",
-        status: ErrorStatus.UNAUTHORIZED, 
+        status: ErrorStatus.UNAUTHORIZED,
         details: null
     },
 
     userNotVerified: {
         code: "user_not_verified",
         message: "Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada e confirme seu cadastro antes de fazer login.",
-        status: ErrorStatus.FORBIDDEN, 
+        status: ErrorStatus.FORBIDDEN,
+        details: null
+    },
+
+    invalidToken:
+    {
+        code: "invalid_token",
+        message: "Token inválido.",
+        status: ErrorStatus.BAD_REQUEST,
         details: null
     }
 

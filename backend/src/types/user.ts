@@ -1,6 +1,7 @@
 export type UpdateUser = {
     avatar?: string,
-    passwoer?: string
+    passwoer?: string,
+    isVerify?: boolean
 }
 
 export type UserOutputDto = {

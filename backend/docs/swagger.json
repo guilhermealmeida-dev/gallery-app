@@ -33,7 +33,7 @@
     "/auth/login": {
       "$ref": "./paths/auth/sign-in.json"
     },
-    "/auth/confirm-email/{token}": {
+    "/auth/confirm-email": {
       "$ref": "./paths/auth/confirm-email.json"
     }
   },

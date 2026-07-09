@@ -33,8 +33,9 @@
           }
         }
       },
+      
       "401": {
-        "$ref": "../../components/responses.json#/TokenError"
+        "$ref": "../../components/responses.json#/InvalidToken"
       },
 
       "500": {
