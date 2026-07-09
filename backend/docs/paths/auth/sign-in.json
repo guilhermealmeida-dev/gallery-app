@@ -30,6 +30,9 @@
       "401": {
         "$ref": "../../components/responses.json#/InvalidCredentials"
       },
+      "403": {
+        "$ref": "../../components/responses.json#/UserNotVerified"
+      },
       "500": {
         "$ref": "../../components/responses.json#/InternalServerError"
       }

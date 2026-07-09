@@ -33,6 +33,9 @@ type ENVIROMENTSTYPE = {
             pass: string
         }
 
+    },
+    secretesKeys: {
+        jwtSecreteKey: string
     }
 };
 
@@ -78,5 +81,8 @@ export const ENVIROMENTS: ENVIROMENTSTYPE = {
             get user() { return process.env.MAIL_USER! },
             get pass() { return process.env.MAIL_PASS! },
         },
+    },
+    secretesKeys: {
+        get jwtSecreteKey() { return process.env.JWT_SECRETE_KEY! },
     }
 };

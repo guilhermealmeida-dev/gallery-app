@@ -1,20 +1,20 @@
 export class AppError {
-  public code: string;
-  public message: string;
-  public status: ErrorStatus;
-  public details?: unknown;
+    public code: string;
+    public message: string;
+    public status: ErrorStatus;
+    public details?: unknown;
 
-  constructor(props: {
-    code: string;
-    message: string;
-    status: ErrorStatus;
-    details?: unknown;
-  }) {
-    this.code = props.code;
-    this.message = props.message;
-    this.status = props.status;
-    this.details = props.details;
-  }
+    constructor(props: {
+        code: string;
+        message: string;
+        status: ErrorStatus;
+        details?: unknown;
+    }) {
+        this.code = props.code;
+        this.message = props.message;
+        this.status = props.status;
+        this.details = props.details;
+    }
 }
 
 export enum ErrorStatus {
@@ -69,5 +69,19 @@ export const ERRORS = {
         status: ErrorStatus.BAD_REQUEST,
         details: null
     },
+
+    invalidCredentials: {
+        code: "invalid_credentials",
+        message: "Credenciais inválidas. Verifique seu e-mail e senha.",
+        status: ErrorStatus.UNAUTHORIZED, 
+        details: null
+    },
+
+    userNotVerified: {
+        code: "user_not_verified",
+        message: "Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada e confirme seu cadastro antes de fazer login.",
+        status: ErrorStatus.FORBIDDEN, 
+        details: null
+    }
 
 } as const satisfies Record<string, AppError>;

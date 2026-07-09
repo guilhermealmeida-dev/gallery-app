@@ -245,5 +245,42 @@
         }
       }
     }
+  },
+
+  "UserNotVerified": {
+    "description": "Error: Forbidden",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            {
+              "$ref": "./schemas/generic-schema.json#/ErrorModel"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Seu e-mail ainda não foi verificado. Verifique sua caixa de entrada e confirme seu cadastro antes de fazer login."
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "user_not_verified"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
   }
 }

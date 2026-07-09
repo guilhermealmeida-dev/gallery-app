@@ -51,7 +51,8 @@ export async function getStorageFile(
             throw new Error("Arquivo sem conteúdo.");
         }
 
-        return await file.Body.transformToByteArray();
+        const bytes = await file.Body.transformToByteArray();
+        return Buffer.from(bytes);
     } catch (error) {
 
         if (error instanceof NoSuchKey) {
