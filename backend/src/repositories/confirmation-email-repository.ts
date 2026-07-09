@@ -1,7 +1,16 @@
 import { prisma } from "../providers/prisma-client.ts";
 
 export async function findEmailConfirmationRepository(token: string) {
-    return await prisma.emailConfirmation.findUnique({ where: { token:token } })
+    return await prisma.emailConfirmation.findUnique({
+        where: { token: token }, include: {
+            user: {
+                select: {
+                    name: true,
+                    email: true
+                }
+            }
+        }
+    })
 }
 
 export async function createEmailConfirmationReposytory(userId: string, token: string) {

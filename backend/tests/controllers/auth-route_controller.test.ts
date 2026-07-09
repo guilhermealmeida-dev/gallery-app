@@ -4,112 +4,180 @@ import {
     describe,
     expect,
     it,
-    jest
+    jest,
 } from "@jest/globals";
-
+import type { Request, Response, NextFunction } from "express";
 import request from "supertest";
 
-import type { CrateUserOutput } from "../../src/types/user.ts";
+const authService = await import("../../src/services/auth-service.ts");
 
+const authServiceMock = {
+    ...authService,
 
-type RegisterUserService = (
-    dto: {
-        name: string;
-        email: string;
-        password: string;
-    },
-    avatar?: Express.Multer.File
-) => Promise<CrateUserOutput>;
+    registerUserService: jest.fn<typeof authService.registerUserService>(),
 
-
-const registerUserServiceMock = jest.fn() as jest.MockedFunction<RegisterUserService>;
+    confirmEmailService: jest.fn<typeof authService.confirmEmailService>(),
+};
 
 jest.unstable_mockModule(
     "../../src/services/auth-service.ts",
-    () => ({
-        registerUserService: registerUserServiceMock
-    })
+    () => authServiceMock
 );
 
-
-const { default: app } = await import(
-    "../../src/app.js"
+jest.unstable_mockModule(
+    "../../src/services/auth-service.ts",
+    () => authServiceMock
 );
 
+const { confirmEmailController } = await import(
+    "../../src/controllers/auth-controller.ts"
+);
 
-describe("POST /auth/register", () => {
+const { default: app } = await import("../../src/app.js");
 
-
+describe("Auth Controller", () => {
     beforeEach(() => {
         jest.clearAllMocks();
     });
-
 
     afterAll(() => {
         jest.restoreAllMocks();
     });
 
+    describe("POST /auth/register", () => {
+        it("deve retornar 201 quando o body for válido", async () => {
+            authServiceMock.registerUserService.mockResolvedValue();
 
-    it("deve retornar 201 quando o body for válido", async () => {
+            const response = await request(app)
+                .post("/auth/register")
+                .field("name", "John Doe")
+                .field("email", "john@email.com")
+                .field("password", "12345678");
 
+            expect(authServiceMock.registerUserService).toHaveBeenCalledTimes(1);
 
-        registerUserServiceMock.mockResolvedValue({
-            id: "user-id",
-            name: "John Doe",
-            email: "john@email.com"
-        } as CrateUserOutput);
-
-
-        const response = await request(app)
-            .post("/auth/register")
-            .field("name", "John Doe")
-            .field("email", "john@email.com")
-            .field("password", "12345678");
-
-
-        expect(registerUserServiceMock)
-            .toHaveBeenCalledTimes(1);
-
-
-        expect(registerUserServiceMock)
-            .toHaveBeenCalledWith(
+            expect(authServiceMock.registerUserService).toHaveBeenCalledWith(
                 {
                     name: "John Doe",
                     email: "john@email.com",
-                    password: "12345678"
+                    password: "12345678",
                 },
                 undefined
             );
 
+            expect(response.status).toBe(201);
 
-        expect(response.status)
-            .toBe(201);
+            expect(response.headers["content-type"]).toMatch(/json/);
 
-
-        expect(response.headers["content-type"])
-            .toMatch(/json/);
-
-
-        expect(response.body)
-            .toEqual({
-                message: "Emeil de confirmação enviado."
+            expect(response.body).toEqual({
+                message: "Email de confirmação enviado.",
             });
+        });
 
+        it("deve retornar 400 quando campos obrigatórios estiverem faltando", async () => {
+            const response = await request(app)
+                .post("/auth/register")
+                .field("email", "john@email.com");
+
+            expect(response.status).toBe(400);
+
+            expect(response.headers["content-type"]).toMatch(/json/);
+        });
     });
 
-    it("deve retornar 400 quando campos obrigatórios estiverem faltando", async () => {
+    describe("GET /auth/confirm-email", () => {
+        let request: Partial<Request>;
+        let response: Partial<Response>;
+        let next: NextFunction;
 
+        beforeEach(() => {
+            request = {};
 
-        const response = await request(app)
-            .post("/auth/register")
-            .field("email", "john@email.com");
+            response = {
+                render: jest.fn(),
+            };
 
+            next = jest.fn();
+        });
 
-        expect(response.status)
-            .toBe(400);
+        it("deve renderizar a página de sucesso quando o token for válido", async () => {
+            authServiceMock.confirmEmailService.mockResolvedValue();
 
+            request.query = {
+                token: "c2f5e1a9-9c3b-4d2a-a7c1-123456abcdef",
+            };
 
-        expect(response.headers["content-type"])
-            .toMatch(/json/);
+            await confirmEmailController(
+                request as Request,
+                response as Response,
+                next
+            );
+
+            expect(authServiceMock.confirmEmailService).toHaveBeenCalledTimes(1);
+
+            expect(authServiceMock.confirmEmailService).toHaveBeenCalledWith(
+                "c2f5e1a9-9c3b-4d2a-a7c1-123456abcdef"
+            );
+
+            expect(response.render).toHaveBeenCalledWith(
+                "confirmation",
+                expect.objectContaining({
+                    success: true,
+                    title: "Email confirmado",
+                    message: "Seu email foi confirmado com sucesso.",
+                    loginUrl: expect.stringContaining("/login"),
+                })
+            );
+        });
+
+        it("deve renderizar a página de erro quando o token for inválido", async () => {
+            authServiceMock.confirmEmailService.mockRejectedValue(
+                new Error("Invalid token")
+            );
+
+            request.query = {
+                token: "invalid-token",
+            };
+
+            await confirmEmailController(
+                request as Request,
+                response as Response,
+                next
+            );
+
+            expect(authServiceMock.confirmEmailService).toHaveBeenCalledWith(
+                "invalid-token"
+            );
+
+            expect(response.render).toHaveBeenCalledWith(
+                "confirmation",
+                expect.objectContaining({
+                    success: false,
+                    title: "Falha na confirmação",
+                    message: "O token é inválido ou expirou.",
+                })
+            );
+        });
+
+        it("deve renderizar a página de erro quando o token não for informado", async () => {
+            request.query = {};
+
+            await confirmEmailController(
+                request as Request,
+                response as Response,
+                next
+            );
+
+            expect(authServiceMock.confirmEmailService).not.toHaveBeenCalled();
+
+            expect(response.render).toHaveBeenCalledWith(
+                "confirmation",
+                expect.objectContaining({
+                    success: false,
+                    title: "Falha na confirmação",
+                    message: "O token é inválido ou expirou.",
+                })
+            );
+        });
     });
 });

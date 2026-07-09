@@ -51,6 +51,7 @@ export async function confirmEmailController(request: Request, response: Respons
         }
 
         await confirmEmailService(token);
+        
         return response.render("confirmation", {
             success: true,
             title: "Email confirmado",

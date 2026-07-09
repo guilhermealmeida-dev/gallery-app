@@ -11,6 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserOutputDto } from "../types/user.ts";
 import { isValid } from "zod/v3";
 import { createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
+import { welcomeTemplate } from "../providers/mail/welcom-tamplate.ts";
 
 //Servico de registro de usuario
 export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?: Express.Multer.File): Promise<void> {
@@ -77,10 +78,21 @@ export async function confirmEmailService(token: string): Promise<void> {
     const emailConfirmation = await findEmailConfirmationRepository(token);
 
     if (!emailConfirmation) {
-        throw new AppError(ERRORS.invalidToken); 
+        throw new AppError(ERRORS.invalidToken);
     }
 
     await updateUserRepository(emailConfirmation.userid, { isVerify: true });
-    await deletEmailConfirmationReposytory(emailConfirmation.id);
+    
+    deletEmailConfirmationReposytory(emailConfirmation.id);
+    const template = welcomeTemplate({
+        name: emailConfirmation.user.name,
+        loginUrl: ENVIROMENTS.hosts.front.url
+    });
+
+    sendEmail({
+        to:emailConfirmation.user.email,
+        subject:"Boa vindas",
+        html: template
+    });
     return;
 }
