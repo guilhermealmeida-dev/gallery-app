@@ -9,7 +9,6 @@ import { confirmEmailTemplate } from "../providers/mail/confirm-email-template.t
 import { sendEmail } from "../providers/mail/node-mail.ts";
 import { v4 as uuidv4 } from 'uuid';
 import { UserOutputDto } from "../types/user.ts";
-import { isValid } from "zod/v3";
 import { createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
 import { welcomeTemplate } from "../providers/mail/welcome-template.ts";
 
@@ -46,6 +45,7 @@ export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?
     return;
 }
 
+//Servico de login do usuario
 export async function loginUserService(dto: AuthLoginUserInputDto): Promise<UserOutputDto> {
     const userdb = await findUserByEmailRepository(dto.email);
     if (!userdb) {
@@ -56,9 +56,7 @@ export async function loginUserService(dto: AuthLoginUserInputDto): Promise<User
         throw new AppError(ERRORS.userNotVerified);
     }
 
-    console.log(userdb)
     const isValid = await bcrypt.compare(dto.password, userdb.password);
-    console.log(isValid)
 
     if (!isValid) {
         throw new AppError(ERRORS.invalidCredentials);
@@ -74,6 +72,7 @@ export async function loginUserService(dto: AuthLoginUserInputDto): Promise<User
     };
 }
 
+//Servico de confirmacao de email
 export async function confirmEmailService(token: string): Promise<void> {
     const emailConfirmation = await findEmailConfirmationRepository(token);
 
