@@ -11,7 +11,7 @@ import { v4 as uuidv4 } from 'uuid';
 import { UserOutputDto } from "../types/user.ts";
 import { isValid } from "zod/v3";
 import { createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
-import { welcomeTemplate } from "../providers/mail/welcom-tamplate.ts";
+import { welcomeTemplate } from "../providers/mail/welcome-template.ts";
 
 //Servico de registro de usuario
 export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?: Express.Multer.File): Promise<void> {

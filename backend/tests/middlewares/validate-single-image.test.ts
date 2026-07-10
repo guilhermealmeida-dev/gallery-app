@@ -4,9 +4,7 @@ import request from "supertest";
 import { upload } from "../../src/utils/upload.ts";
 import { validateSingleImage } from "../../src/middlewares/validate-single-image.js";
 
-
 const app = express();
-
 
 app.post(
     "/upload",
@@ -23,8 +21,6 @@ app.post(
 
 
 describe("Middleware de upload", () => {
-
-
     it("deve aceitar uma imagem válida", async () => {
 
         const response = await request(app)

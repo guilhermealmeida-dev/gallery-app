@@ -1,6 +1,5 @@
-export class AppError {
+export class AppError extends Error {
     public code: string;
-    public message: string;
     public status: ErrorStatus;
     public details?: unknown;
 
@@ -10,12 +9,23 @@ export class AppError {
         status: ErrorStatus;
         details?: unknown;
     }) {
+        super(props.message);
+
+        this.name = "AppError";
         this.code = props.code;
-        this.message = props.message;
         this.status = props.status;
         this.details = props.details;
+
+        Object.setPrototypeOf(this, AppError.prototype);
     }
 }
+
+export type AppErrorData = {
+    code: string;
+    message: string;
+    status: ErrorStatus;
+    details?: unknown;
+};
 
 export enum ErrorStatus {
     OK = 200,
@@ -92,4 +102,4 @@ export const ERRORS = {
         details: null
     }
 
-} as const satisfies Record<string, AppError>;
+} as const satisfies Record<string, AppErrorData>;
