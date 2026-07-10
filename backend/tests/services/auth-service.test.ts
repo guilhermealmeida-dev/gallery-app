@@ -10,21 +10,14 @@ import {
 type ConfirmationEmailRepository =
     typeof import("../../src/repositories/confirmation-email-repository.ts");
 
-type UserRepository =
-    typeof import("../../src/repositories/user-repository.ts");
-
 type WelcomeTemplateProvider =
     typeof import("../../src/providers/mail/welcome-template.ts");
 
 type NodeMailProvider =
     typeof import("../../src/providers/mail/node-mail.ts");
 
-type StorageProvider =
-    typeof import("../../src/providers/s3-storage.ts");
-
-type Bcrypt =
-    typeof import("bcryptjs");
-
+type ConfirmEmailTemplateProvider =
+    typeof import("../../src/providers/mail/confirm-email-template.ts");
 
 const actualStorageProvider = await import(
     "../../src/providers/s3-storage.ts"
@@ -58,6 +51,8 @@ const userRepositoryMock = {
         jest.fn<typeof actualUserRepository.updateUserRepository>(),
     findUserByEmailRepository:
         jest.fn<typeof actualUserRepository.findUserByEmailRepository>(),
+    createUserRepository:
+        jest.fn<typeof actualUserRepository.createUserRepository>(),
 };
 
 const welcomeTemplateMock = {
@@ -74,13 +69,6 @@ const nodeMailMock = {
         >,
 };
 
-const storageProviderMock = {
-    ...actualStorageProvider,
-
-    getStorageFile:
-        jest.fn<typeof actualStorageProvider.getStorageFile>(),
-};
-
 const bcryptMock = {
     default: {
         compare: jest.fn<
@@ -89,8 +77,46 @@ const bcryptMock = {
                 encrypted: string
             ) => Promise<boolean>
         >(),
+        hash: jest.fn<
+            (
+                data: string,
+                salt: number
+            ) => Promise<string>
+        >(),
     },
 };
+
+const confirmEmailTemplateMock = {
+    confirmEmailTemplate:
+        jest.fn() as jest.MockedFunction<
+            ConfirmEmailTemplateProvider["confirmEmailTemplate"]
+        >,
+};
+
+const storageProviderMock = {
+    ...actualStorageProvider,
+    getStorageFile:
+        jest.fn<typeof actualStorageProvider.getStorageFile>(),
+    uploadStorageFile:
+        jest.fn<typeof actualStorageProvider.uploadStorageFile>(),
+};
+
+jest.unstable_mockModule(
+    "../../src/providers/mail/confirm-email-template.ts",
+    () => confirmEmailTemplateMock
+);
+
+jest.unstable_mockModule(
+    "../../src/providers/s3-storage.ts",
+    () => storageProviderMock
+);
+
+jest.unstable_mockModule(
+    "uuid",
+    () => ({
+        v4: jest.fn(() => "fake-confirmation-token"),
+    })
+);
 
 jest.unstable_mockModule("bcryptjs", () => bcryptMock);
 
@@ -119,8 +145,21 @@ jest.unstable_mockModule(
     () => storageProviderMock
 );
 
+jest.unstable_mockModule(
+    "../../src/providers/mail/confirm-email-template.ts",
+    () => confirmEmailTemplateMock
+);
 
-const { confirmEmailService, loginUserService, } = await import(
+jest.unstable_mockModule(
+    "../../src/providers/s3-storage.ts",
+    () => storageProviderMock
+);
+
+const {
+    confirmEmailService,
+    loginUserService,
+    registerUserService,
+} = await import(
     "../../src/services/auth-service.ts"
 );
 
@@ -130,6 +169,163 @@ beforeEach(() => {
     welcomeTemplateMock.welcomeTemplate.mockReturnValue(
         "<h1>Bem-vindo!</h1>"
     );
+});
+
+describe("registerUserService", () => {
+
+    it("deve registrar usuário com sucesso sem avatar", async () => {
+
+        userRepositoryMock.findUserByEmailRepository
+            .mockResolvedValue(null);
+
+        userRepositoryMock.createUserRepository
+            .mockResolvedValue({
+                id: "user-id",
+                name: "John Doe",
+                email: "john@email.com",
+                password: "hashed-password",
+                avatar: null,
+            } as any);
+
+
+        confirmEmailTemplateMock.confirmEmailTemplate
+            .mockReturnValue("<h1>Confirmar email</h1>");
+
+        await registerUserService({
+            name: "John Doe",
+            email: "john@email.com",
+            password: "12345678",
+        });
+
+
+        expect(
+            userRepositoryMock.findUserByEmailRepository
+        ).toHaveBeenCalledWith(
+            "john@email.com"
+        );
+
+
+        expect(
+            userRepositoryMock.createUserRepository
+        ).toHaveBeenCalledTimes(1);
+
+
+        expect(
+            confirmationEmailRepositoryMock
+                .createEmailConfirmationReposytory
+        ).toHaveBeenCalledWith(
+            "user-id",
+            "fake-confirmation-token"
+        );
+
+
+        expect(
+            nodeMailMock.sendEmail
+        ).toHaveBeenCalledWith({
+            to: "john@email.com",
+            subject: "Confirmação de email",
+            html: "<h1>Confirmar email</h1>",
+        });
+
+
+        expect(
+            storageProviderMock.uploadStorageFile
+        ).not.toHaveBeenCalled();
+    });
+
+
+    it("deve registrar usuário enviando avatar", async () => {
+
+        userRepositoryMock.findUserByEmailRepository
+            .mockResolvedValue(null);
+
+
+        userRepositoryMock.createUserRepository
+            .mockResolvedValue({
+                id: "user-id",
+                name: "John Doe",
+                email: "john@email.com",
+                password: "hashed-password",
+                avatar: null,
+            } as any);
+
+
+        storageProviderMock.uploadStorageFile
+            .mockResolvedValue(
+                "profiles/user-id/avatar.png"
+            );
+
+
+        confirmEmailTemplateMock.confirmEmailTemplate
+            .mockReturnValue(
+                "<h1>Confirmar email</h1>"
+            );
+
+
+        const avatar = {
+            originalname: "avatar.png",
+            mimetype: "image/png",
+            buffer: Buffer.from("fake-image"),
+        } as Express.Multer.File;
+
+
+
+        await registerUserService(
+            {
+                name: "John Doe",
+                email: "john@email.com",
+                password: "12345678",
+            },
+            avatar
+        );
+
+
+        expect(
+            storageProviderMock.uploadStorageFile
+        ).toHaveBeenCalledTimes(1);
+
+
+        expect(
+            userRepositoryMock.updateUserRepository
+        ).toHaveBeenCalledWith(
+            "user-id",
+            {
+                avatar: "profiles/user-id/avatar.png"
+            }
+        );
+    });
+
+
+    it("deve lançar erro quando email já existir", async () => {
+
+        userRepositoryMock.findUserByEmailRepository
+            .mockResolvedValue({
+                id: "existing-user",
+                email: "john@email.com"
+            } as any);
+
+
+
+        await expect(
+            registerUserService({
+                name: "John Doe",
+                email: "john@email.com",
+                password: "12345678",
+            })
+        ).rejects.toThrow();
+
+
+
+        expect(
+            userRepositoryMock.createUserRepository
+        ).not.toHaveBeenCalled();
+
+
+        expect(
+            nodeMailMock.sendEmail
+        ).not.toHaveBeenCalled();
+    });
+
 });
 
 describe("loginUserService", () => {
