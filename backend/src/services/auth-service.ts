@@ -9,8 +9,10 @@ import { confirmEmailTemplate } from "../providers/mail/confirm-email-template.t
 import { sendEmail } from "../providers/mail/node-mail.ts";
 import { v4 as uuidv4 } from 'uuid';
 import { UserOutputDto } from "../types/user.ts";
-import { createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
+import { countEmailConfirmationByUserId, createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findValidEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
 import { welcomeTemplate } from "../providers/mail/welcome-template.ts";
+import { forgotPasswordTemplate } from "../providers/mail/forgot-password-template.ts";
+import { passwordUpdatedTemplate } from "../providers/mail/password-updated-template.ts";
 
 //Servico de registro de usuario
 export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?: Express.Multer.File): Promise<void> {
@@ -34,7 +36,7 @@ export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?
     }
 
     const confirmationToken = uuidv4();
-    await createEmailConfirmationReposytory(userCreated.id, confirmationToken);
+    await createEmailConfirmationReposytory(userCreated.id, confirmationToken, new Date());
     const confirmationUrl = `${ENVIROMENTS.hosts.api.url}/auth/confirm-email?token=${confirmationToken}`
     const template = confirmEmailTemplate({ name: userCreated.name, confirmationUrl: confirmationUrl });
     await sendEmail({
@@ -74,14 +76,14 @@ export async function loginUserService(dto: AuthLoginUserInputDto): Promise<User
 
 //Servico de confirmacao de email
 export async function confirmEmailService(token: string): Promise<void> {
-    const emailConfirmation = await findEmailConfirmationRepository(token);
+    const emailConfirmation = await findValidEmailConfirmationRepository(token);
 
     if (!emailConfirmation) {
         throw new AppError(ERRORS.invalidToken);
     }
 
     await updateUserRepository(emailConfirmation.userid, { isVerify: true });
-    
+
     deletEmailConfirmationReposytory(emailConfirmation.id);
     const template = welcomeTemplate({
         name: emailConfirmation.user.name,
@@ -89,8 +91,71 @@ export async function confirmEmailService(token: string): Promise<void> {
     });
 
     sendEmail({
-        to:emailConfirmation.user.email,
-        subject:"Boa vindas",
+        to: emailConfirmation.user.email,
+        subject: "Boa vindas",
+        html: template
+    });
+    return;
+}
+
+//Servico de evio de email para recuperacao de senha
+export async function sendEmailForgotPasswordService(email: string): Promise<void> {
+    const user = await findUserByEmailRepository(email);
+    if (!user || !user.isVerify) {
+        return;
+    }
+
+    const emailConfirmations = await countEmailConfirmationByUserId(user.id);
+    if (emailConfirmations >= 5) {
+        console.log("ENtrou");
+        throw new AppError(ERRORS.emailRequestLimitExceeded);
+    }
+
+    const newtoken = uuidv4();
+    await createEmailConfirmationReposytory(user.id, newtoken, new Date());
+    const template = forgotPasswordTemplate({
+        name: user.name,
+        token: newtoken,
+        resetPasswordUrl: ENVIROMENTS.hosts.front.url + "/recover-password"
+    });
+
+    await sendEmail({
+        to: user.email,
+        subject: "Recuperaçao de Senha",
+        html: template
+    });
+    return;
+}
+
+//Servico de validacao de token 
+export async function validateTokenService(token: string): Promise<void> {
+    const emailConfirmation = await findValidEmailConfirmationRepository(token);
+
+    if (!emailConfirmation) {
+        throw new AppError(ERRORS.invalidToken);
+    }
+}
+
+//Servico de recuperacao de senha
+export async function resetPasswordService(token: string, newPassword: string): Promise<void> {
+
+    const emailConfirmation = await findValidEmailConfirmationRepository(token);
+    if (!emailConfirmation) {
+        throw new AppError(ERRORS.invalidToken);
+    }
+
+    const hashPassword = await bcrypt.hash(newPassword, 10);
+    await updateUserRepository(emailConfirmation.userid, { password: hashPassword });
+    await deletEmailConfirmationReposytory(emailConfirmation.id);
+
+    const template = passwordUpdatedTemplate({
+        name: emailConfirmation.user.name,
+        loginUrl: ENVIROMENTS.hosts.front.url
+    });
+
+    sendEmail({
+        to: emailConfirmation.user.email,
+        subject: "Senha Atualizada",
         html: template
     });
     return;

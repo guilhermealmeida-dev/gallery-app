@@ -38,6 +38,8 @@ export enum ErrorStatus {
     NOT_FOUND = 404,
     CONFLICT = 409,
     UNPROCESSABLE_ENTITY = 422,
+    TOO_MANY_REQUESTS = 429,
+
 
     INTERNAL_SERVER_ERROR = 500,
     NOT_IMPLEMENTED = 501,
@@ -100,6 +102,13 @@ export const ERRORS = {
         message: "Token inválido.",
         status: ErrorStatus.BAD_REQUEST,
         details: null
-    }
+    },
+
+    emailRequestLimitExceeded: {
+        code: "email_request_limit_exceeded",
+        message: "Limite de solicitações por hoje excedido. Tente novamente amanhã.",
+        status: ErrorStatus.TOO_MANY_REQUESTS,
+        details: null
+    },
 
 } as const satisfies Record<string, AppErrorData>;

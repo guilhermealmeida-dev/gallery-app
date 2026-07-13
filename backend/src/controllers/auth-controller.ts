@@ -1,11 +1,13 @@
 import type { Request, Response, NextFunction } from "express";
 import type { AuthLoginUserInputDto, AuthRegisterUserInputDto } from "../schemas/auth-schema.ts";
-import { confirmEmailService, loginUserService, registerUserService } from "../services/auth-service.ts";
+import { confirmEmailService, resetPasswordService, loginUserService, registerUserService, sendEmailForgotPasswordService, validateTokenService } from "../services/auth-service.ts";
 import { AuthLoginOutputDto, AuthPayload } from "../types/auth.ts";
 import { jwtGenerateToken } from "../utils/jwt.ts";
 import { ENVIROMENTS } from "../env-config.ts";
 import { AppError, ERRORS } from "../types/error.ts";
+import { email } from "zod";
 
+//Registro de usuario
 export async function registerUserController(request: Request, response: Response, next: NextFunction) {
     try {
         const dto: AuthRegisterUserInputDto = request.body;
@@ -17,6 +19,7 @@ export async function registerUserController(request: Request, response: Respons
     }
 }
 
+//Login de usuario
 export async function loginController(request: Request, response: Response, next: NextFunction) {
     try {
         const dto: AuthLoginUserInputDto = request.body;
@@ -38,6 +41,7 @@ export async function loginController(request: Request, response: Response, next
     }
 }
 
+//Confirmacao de email
 export async function confirmEmailController(request: Request, response: Response, next: NextFunction) {
     try {
         const { token } = request.query;
@@ -51,7 +55,7 @@ export async function confirmEmailController(request: Request, response: Respons
         }
 
         await confirmEmailService(token);
-        
+
         return response.render("confirmation", {
             success: true,
             title: "Email confirmado",
@@ -64,5 +68,45 @@ export async function confirmEmailController(request: Request, response: Respons
             title: "Falha na confirmação",
             message: "O token é inválido ou expirou."
         });
+    }
+}
+
+//Envio de email de recuperacao de senha
+export async function sendEmailForgotPasswordController(request: Request, response: Response, next: NextFunction) {
+    try {
+        const { email } = request.body;
+
+        await sendEmailForgotPasswordService(email);
+
+        return response.status(200).json({ message: "Se houver uma conta será enviado um email de recuperação" });
+    } catch (error) {
+        next(error);
+    }
+}
+
+//Envio de email de recuperacao de senha
+export async function validateTokenController(request: Request, response: Response, next: NextFunction) {
+    try {
+        const token = request.query.token as string;
+
+        await validateTokenService(token);
+
+        return response.status(200).json({ message: "Token válido" });
+    } catch (error) {
+        next(error);
+    }
+}
+
+//Recuperacao de senha
+export async function resetPasswordController(request: Request, response: Response, next: NextFunction) {
+    try {
+        const { token, newPassword } = request.body;
+        await validateTokenService(token);
+
+        await resetPasswordService(token, newPassword);
+
+        return response.status(200).json({ message: "Senha atualizada com sucesso!" });
+    } catch (error) {
+        next(error);
     }
 }

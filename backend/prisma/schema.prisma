@@ -19,6 +19,7 @@ model User {
   password String
   avatar   String?
   isVerify Boolean @default(false)
+  creatAt DateTime? @default(now())
 
   emailConfirmation EmailConfirmation?
   albums Album[]
@@ -29,6 +30,7 @@ model User {
 model EmailConfirmation {
   id       String @id @default(uuid())
   token String @unique
+  date     DateTime? @default(now())
 
   userid String @unique
 

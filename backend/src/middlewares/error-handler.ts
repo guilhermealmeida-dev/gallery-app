@@ -23,12 +23,12 @@ export function errorHandler(
     }
 
     if (error instanceof SyntaxError) {
-        return errorResponse(ERRORS.syntaxeJsonError, response);
+        return errorResponse(new AppError(ERRORS.syntaxeJsonError), response);
     }
 
     if (error instanceof AppError) {
         return errorResponse(error, response);
     }
 
-    return errorResponse(ERRORS.internalServerError, response);
+    return errorResponse(new AppError(ERRORS.internalServerError), response);
 }
