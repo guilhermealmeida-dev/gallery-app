@@ -35,6 +35,15 @@
     },
     "/auth/confirm-email": {
       "$ref": "./paths/auth/confirm-email.json"
+    },
+     "/auth/send-forgot-password": {
+      "$ref": "./paths/auth/send-forgot-password.json"
+    },
+    "/auth/reset-password/validate": {
+      "$ref": "./paths/auth/reset-password-validate.json"
+    },
+    "/auth/reset-password": {
+      "$ref": "./paths/auth/reset-password.json"
     }
   },
   "components": {

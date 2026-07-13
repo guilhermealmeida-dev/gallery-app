@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "email-confirmation" ADD COLUMN     "date" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;
+
+-- AlterTable
+ALTER TABLE "users" ADD COLUMN     "creatAt" TIMESTAMP(3) DEFAULT CURRENT_TIMESTAMP;
