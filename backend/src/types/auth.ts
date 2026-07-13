@@ -5,7 +5,6 @@ export type AuthLoginOutputDto = {
     user: UserOutputDto
 }
 
-
 export type AuthPayload = {
     id: string,
     email: string

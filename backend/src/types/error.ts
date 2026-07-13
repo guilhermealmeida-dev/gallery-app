@@ -111,4 +111,11 @@ export const ERRORS = {
         details: null
     },
 
+    unauthorized: {
+        code: "unauthorized",
+        message: "Autenticação necessária",
+        status: ErrorStatus.TOO_MANY_REQUESTS,
+        details: null
+    }
+
 } as const satisfies Record<string, AppErrorData>;
