@@ -1,11 +1,15 @@
 import {
-    afterAll,
     beforeEach,
     describe,
     expect,
     it,
     jest,
 } from "@jest/globals";
+import { countEmailConfirmationByUserId } from "../../src/repositories/confirmation-email-repository.ts";
+import { AppError, ERRORS } from "../../src/types/error.ts";
+import { UpdateObjectEncryption$ } from "@aws-sdk/client-s3";
+type ForgotPasswordTemplateProvider =
+    typeof import("../../src/providers/mail/forgot-password-template.ts");
 
 type ConfirmationEmailRepository =
     typeof import("../../src/repositories/confirmation-email-repository.ts");
@@ -18,6 +22,23 @@ type NodeMailProvider =
 
 type ConfirmEmailTemplateProvider =
     typeof import("../../src/providers/mail/confirm-email-template.ts");
+
+type PasswordUpdatedTemplateProvider =
+    typeof import("../../src/providers/mail/password-updated-template.ts");
+
+const passwordUpdatedTemplateMock = {
+    passwordUpdatedTemplate:
+        jest.fn() as jest.MockedFunction<
+            PasswordUpdatedTemplateProvider["passwordUpdatedTemplate"]
+        >,
+};
+
+const forgotPasswordTemplateMock = {
+    forgotPasswordTemplate:
+        jest.fn() as jest.MockedFunction<
+            ForgotPasswordTemplateProvider["forgotPasswordTemplate"]
+        >,
+};
 
 const actualStorageProvider = await import(
     "../../src/providers/s3-storage.ts"
@@ -33,14 +54,19 @@ const confirmationEmailRepositoryMock = {
             ConfirmationEmailRepository["createEmailConfirmationReposytory"]
         >,
 
-    findEmailConfirmationRepository:
+    findValidEmailConfirmationRepository:
         jest.fn() as jest.MockedFunction<
-            ConfirmationEmailRepository["findEmailConfirmationRepository"]
+            ConfirmationEmailRepository["findValidEmailConfirmationRepository"]
         >,
 
     deletEmailConfirmationReposytory:
         jest.fn() as jest.MockedFunction<
             ConfirmationEmailRepository["deletEmailConfirmationReposytory"]
+        >,
+
+    countEmailConfirmationByUserId:
+        jest.fn() as jest.MockedFunction<
+            ConfirmationEmailRepository["countEmailConfirmationByUserId"]
         >,
 };
 
@@ -102,6 +128,16 @@ const storageProviderMock = {
 };
 
 jest.unstable_mockModule(
+    "../../src/providers/mail/password-updated-template.ts",
+    () => passwordUpdatedTemplateMock
+);
+
+jest.unstable_mockModule(
+    "../../src/providers/mail/forgot-password-template.ts",
+    () => forgotPasswordTemplateMock
+);
+
+jest.unstable_mockModule(
     "../../src/providers/mail/confirm-email-template.ts",
     () => confirmEmailTemplateMock
 );
@@ -159,6 +195,9 @@ const {
     confirmEmailService,
     loginUserService,
     registerUserService,
+    sendEmailForgotPasswordService,
+    validateTokenService,
+    resetPasswordService
 } = await import(
     "../../src/services/auth-service.ts"
 );
@@ -209,13 +248,10 @@ describe("registerUserService", () => {
             userRepositoryMock.createUserRepository
         ).toHaveBeenCalledTimes(1);
 
-
-        expect(
-            confirmationEmailRepositoryMock
-                .createEmailConfirmationReposytory
-        ).toHaveBeenCalledWith(
+        expect(confirmationEmailRepositoryMock.createEmailConfirmationReposytory).toHaveBeenCalledWith(
             "user-id",
-            "fake-confirmation-token"
+            "fake-confirmation-token",
+            expect.any(Date)
         );
 
 
@@ -466,7 +502,7 @@ describe("loginUserService", () => {
 
 describe("confirmEmailService", () => {
     it("deve confirmar o e-mail do usuário", async () => {
-        confirmationEmailRepositoryMock.findEmailConfirmationRepository.mockResolvedValue(
+        confirmationEmailRepositoryMock.findValidEmailConfirmationRepository.mockResolvedValue(
             {
                 id: "confirmation-id",
                 token: "token-123",
@@ -475,17 +511,18 @@ describe("confirmEmailService", () => {
                     name: "John Doe",
                     email: "john@email.com",
                 },
+                date: new Date()
             }
         );
 
         await confirmEmailService("token-123");
 
         expect(
-            confirmationEmailRepositoryMock.findEmailConfirmationRepository
+            confirmationEmailRepositoryMock.findValidEmailConfirmationRepository
         ).toHaveBeenCalledTimes(1);
 
         expect(
-            confirmationEmailRepositoryMock.findEmailConfirmationRepository
+            confirmationEmailRepositoryMock.findValidEmailConfirmationRepository
         ).toHaveBeenCalledWith("token-123");
 
         expect(
@@ -531,13 +568,13 @@ describe("confirmEmailService", () => {
     });
 
     it("deve lançar erro quando o token não existir", async () => {
-        confirmationEmailRepositoryMock.findEmailConfirmationRepository.mockResolvedValue(
+        confirmationEmailRepositoryMock.findValidEmailConfirmationRepository.mockResolvedValue(
             null
         );
-        confirmationEmailRepositoryMock.findEmailConfirmationRepository.mockResolvedValue(null);
+        confirmationEmailRepositoryMock.findValidEmailConfirmationRepository.mockResolvedValue(null);
 
         const result =
-            await confirmationEmailRepositoryMock.findEmailConfirmationRepository("invalid-token");
+            await confirmationEmailRepositoryMock.findValidEmailConfirmationRepository("invalid-token");
 
         console.log(result);
         await expect(
@@ -559,5 +596,223 @@ describe("confirmEmailService", () => {
         expect(
             nodeMailMock.sendEmail
         ).not.toHaveBeenCalled();
+    });
+});
+
+describe("sendEmailForgotPasswordService", () => {
+    it("deve enviar e-mail de recuperação de senha com sucesso", async () => {
+        userRepositoryMock.findUserByEmailRepository.mockResolvedValue({
+            id: "user-id",
+            name: "Guilherme",
+            email: "gui@email.com",
+            password: "hash",
+            avatar: null,
+            isVerify: true,
+        });
+
+        confirmationEmailRepositoryMock.countEmailConfirmationByUserId.mockResolvedValue(
+            0
+        );
+
+        const forgotTemplate = "<h1>Recuperar senha</h1>";
+
+        forgotPasswordTemplateMock.forgotPasswordTemplate.mockReturnValue(
+            forgotTemplate
+        );
+
+        await sendEmailForgotPasswordService("gui@email.com");
+
+        expect(
+            confirmationEmailRepositoryMock.countEmailConfirmationByUserId
+        ).toHaveBeenCalledWith("user-id");
+
+        expect(
+            confirmationEmailRepositoryMock.createEmailConfirmationReposytory
+        ).toHaveBeenCalledWith(
+            "user-id",
+            "fake-confirmation-token",
+            expect.any(Date)
+        );
+
+        expect(nodeMailMock.sendEmail).toHaveBeenCalledWith({
+            to: "gui@email.com",
+            subject: "Recuperaçao de Senha",
+            html: forgotTemplate,
+        });
+    });
+
+    it("não deve fazer nada quando usuário não existir", async () => {
+        userRepositoryMock.findUserByEmailRepository.mockResolvedValue(null);
+
+        await expect(
+            sendEmailForgotPasswordService("gui@email.com")
+        ).resolves.toBeUndefined();
+
+        expect(
+            confirmationEmailRepositoryMock.countEmailConfirmationByUserId
+        ).not.toHaveBeenCalled();
+
+        expect(
+            confirmationEmailRepositoryMock.createEmailConfirmationReposytory
+        ).not.toHaveBeenCalled();
+
+        expect(nodeMailMock.sendEmail).not.toHaveBeenCalled();
+    });
+
+    it("deve lançar erro quando usuário atingir limite de solicitações", async () => {
+        userRepositoryMock.findUserByEmailRepository.mockResolvedValue({
+            id: "user-id",
+            name: "Guilherme",
+            email: "gui@email.com",
+            password: "hash",
+            avatar: null,
+            isVerify: true,
+        });
+
+        confirmationEmailRepositoryMock.countEmailConfirmationByUserId.mockResolvedValue(
+            5
+        );
+
+        await expect(
+            sendEmailForgotPasswordService("gui@email.com")
+        ).rejects.toThrow(ERRORS.emailRequestLimitExceeded.message);
+
+        expect(
+            confirmationEmailRepositoryMock.createEmailConfirmationReposytory
+        ).not.toHaveBeenCalled();
+
+        expect(nodeMailMock.sendEmail).not.toHaveBeenCalled();
+    });
+});
+
+describe("validateTokenService", () => {
+    it("deve validar um token existente", async () => {
+        confirmationEmailRepositoryMock
+            .findValidEmailConfirmationRepository
+            .mockResolvedValue({
+                id: "confirmation-id",
+                userId: "user-id",
+                token: "fake-token",
+                createdAt: new Date(),
+            } as any);
+
+        await expect(
+            validateTokenService("fake-token")
+        ).resolves.toBeUndefined();
+
+        expect(
+            confirmationEmailRepositoryMock
+                .findValidEmailConfirmationRepository
+        ).toHaveBeenCalledTimes(1);
+
+        expect(
+            confirmationEmailRepositoryMock
+                .findValidEmailConfirmationRepository
+        ).toHaveBeenCalledWith("fake-token");
+    });
+
+    it("deve lançar erro quando o token for inválido", async () => {
+        confirmationEmailRepositoryMock
+            .findValidEmailConfirmationRepository
+            .mockResolvedValue(null);
+
+        await expect(
+            validateTokenService("fake-token")
+        ).rejects.toThrow(AppError);
+
+        await expect(
+            validateTokenService("fake-token")
+        ).rejects.toMatchObject({
+            code: ERRORS.invalidToken.code,
+            status: ERRORS.invalidToken.status,
+        });
+
+        expect(
+            confirmationEmailRepositoryMock
+                .findValidEmailConfirmationRepository
+        ).toHaveBeenCalledTimes(2);
+
+        expect(
+            confirmationEmailRepositoryMock
+                .findValidEmailConfirmationRepository
+        ).toHaveBeenCalledWith("fake-token");
+    });
+});
+
+describe("resetPasswordService", () => {
+    it("deve lançar erro quando o token for inválido", async () => {
+        confirmationEmailRepositoryMock.findValidEmailConfirmationRepository.mockResolvedValue(
+            null
+        );
+
+        await expect(
+            resetPasswordService("invalid-token", "NovaSenha123")
+        ).rejects.toThrow(new AppError(ERRORS.invalidToken));
+
+        expect(
+            confirmationEmailRepositoryMock.findValidEmailConfirmationRepository
+        ).toHaveBeenCalledWith("invalid-token");
+
+        expect(bcryptMock.default.hash).not.toHaveBeenCalled();
+        expect(userRepositoryMock.updateUserRepository).not.toHaveBeenCalled();
+        expect(
+            confirmationEmailRepositoryMock.deletEmailConfirmationReposytory
+        ).not.toHaveBeenCalled();
+        expect(nodeMailMock.sendEmail).not.toHaveBeenCalled();
+    })
+    it("deve atualizar a senha, remover o token e enviar email", async () => {
+        confirmationEmailRepositoryMock.findValidEmailConfirmationRepository.mockResolvedValue(
+            {
+                id: "confirmation-id",
+                userid: "user-id",
+                user: {
+                    name: "John",
+                    email: "john@email.com",
+                },
+            } as any
+        );
+
+        bcryptMock.default.hash.mockResolvedValue("hashed-password");
+
+        passwordUpdatedTemplateMock.passwordUpdatedTemplate.mockReturnValue(
+            "<h1>Senha alterada</h1>"
+        );
+
+        await resetPasswordService(
+            "valid-token",
+            "NovaSenha123"
+        );
+
+        expect(
+            confirmationEmailRepositoryMock.findValidEmailConfirmationRepository
+        ).toHaveBeenCalledWith("valid-token");
+
+        expect(bcryptMock.default.hash).toHaveBeenCalledWith(
+            "NovaSenha123",
+            10
+        );
+
+        expect(
+            userRepositoryMock.updateUserRepository
+        ).toHaveBeenCalledWith("user-id", {
+            password: "hashed-password",
+        });
+
+        expect(
+            confirmationEmailRepositoryMock.deletEmailConfirmationReposytory
+        ).toHaveBeenCalledWith("confirmation-id");
+
+        expect(
+            passwordUpdatedTemplateMock.passwordUpdatedTemplate
+        ).toHaveBeenCalledWith({
+            name: "John",
+            loginUrl: expect.any(String),
+        });
+
+        expect(nodeMailMock.sendEmail).toHaveBeenCalledWith({
+            to: "john@email.com",
+            subject: "Senha Atualizada",
+            html: "<h1>Senha alterada</h1>",
+        });
     });
 });

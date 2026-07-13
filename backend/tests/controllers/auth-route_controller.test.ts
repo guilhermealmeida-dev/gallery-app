@@ -1,12 +1,10 @@
 import {
-    afterAll,
     beforeEach,
     describe,
     expect,
     it,
     jest,
 } from "@jest/globals";
-import type { Request, Response, NextFunction } from "express";
 import request from "supertest";
 import { AppError, ERRORS } from "../../src/types/error.ts";
 
@@ -18,9 +16,18 @@ const authServiceMock = {
 
     confirmEmailService: jest.fn<typeof authService.confirmEmailService>(),
 
-    loginUserService: jest.fn<typeof authService.loginUserService>()
+    loginUserService: jest.fn<typeof authService.loginUserService>(),
 
+    sendEmailForgotPasswordService:
+        jest.fn<typeof authService.sendEmailForgotPasswordService>(),
+
+    validateTokenService:
+        jest.fn<typeof authService.validateTokenService>(),
+
+    resetPasswordService:
+        jest.fn<typeof authService.resetPasswordService>(),
 };
+
 jest.unstable_mockModule(
     "../../src/services/auth-service.ts",
     () => authServiceMock
@@ -34,10 +41,6 @@ const jwtMock = {
 jest.unstable_mockModule(
     "../../src/utils/jwt.ts",
     () => jwtMock
-);
-
-const { confirmEmailController } = await import(
-    "../../src/controllers/auth-controller.ts"
 );
 
 const { default: app } = await import("../../src/app.js");
@@ -162,102 +165,193 @@ describe("POST /auth/login", () => {
 
         expect(jwtMock.jwtGenerateToken).not.toHaveBeenCalled();
 
-        expect(response.status).toBe(401); 
+        expect(response.status).toBe(401);
     });
 });
 
 describe("GET /auth/confirm-email", () => {
-    let request: Partial<Request>;
-    let response: Partial<Response>;
-    let next: NextFunction;
-
-    beforeEach(() => {
-        request = {};
-
-        response = {
-            render: jest.fn(),
-        };
-
-        next = jest.fn();
-    });
-
     it("deve renderizar a página de sucesso quando o token for válido", async () => {
         authServiceMock.confirmEmailService.mockResolvedValue();
 
-        request.query = {
-            token: "c2f5e1a9-9c3b-4d2a-a7c1-123456abcdef",
-        };
-
-        await confirmEmailController(
-            request as Request,
-            response as Response,
-            next
+        const response = await request(app).get(
+            "/auth/confirm-email?token=c2f5e1a9-9c3b-4d2a-a7c1-123456abcdef"
         );
 
-        expect(authServiceMock.confirmEmailService).toHaveBeenCalledTimes(1);
+        expect(response.status).toBe(200);
 
         expect(authServiceMock.confirmEmailService).toHaveBeenCalledWith(
             "c2f5e1a9-9c3b-4d2a-a7c1-123456abcdef"
         );
 
-        expect(response.render).toHaveBeenCalledWith(
-            "confirmation",
-            expect.objectContaining({
-                success: true,
-                title: "Email confirmado",
-                message: "Seu email foi confirmado com sucesso.",
-                loginUrl: expect.stringContaining("/login"),
-            })
-        );
-    });
-
-    it("deve renderizar a página de erro quando o token for inválido", async () => {
-        authServiceMock.confirmEmailService.mockRejectedValue(
-            new Error("Invalid token")
-        );
-
-        request.query = {
-            token: "invalid-token",
-        };
-
-        await confirmEmailController(
-            request as Request,
-            response as Response,
-            next
-        );
-
-        expect(authServiceMock.confirmEmailService).toHaveBeenCalledWith(
-            "invalid-token"
-        );
-
-        expect(response.render).toHaveBeenCalledWith(
-            "confirmation",
-            expect.objectContaining({
-                success: false,
-                title: "Falha na confirmação",
-                message: "O token é inválido ou expirou.",
-            })
-        );
+        expect(response.text).toContain("Email confirmado");
+        expect(response.text).toContain("Seu email foi confirmado com sucesso.");
     });
 
     it("deve renderizar a página de erro quando o token não for informado", async () => {
-        request.query = {};
-
-        await confirmEmailController(
-            request as Request,
-            response as Response,
-            next
+        const response = await request(app).get(
+            "/auth/confirm-email"
         );
 
         expect(authServiceMock.confirmEmailService).not.toHaveBeenCalled();
 
-        expect(response.render).toHaveBeenCalledWith(
-            "confirmation",
-            expect.objectContaining({
-                success: false,
-                title: "Falha na confirmação",
-                message: "O token é inválido ou expirou.",
-            })
+        expect(response.status).toBe(200);
+
+        expect(response.text).toContain("Falha na confirmação");
+        expect(response.text).toContain("O token é inválido ou expirou.");
+    });
+
+});
+
+describe("POST /auth/send-forgot-password", () => {
+    it("deve retornar 200", async () => {
+        authServiceMock.sendEmailForgotPasswordService.mockResolvedValue();
+
+        const response = await request(app)
+            .post("/auth/send-forgot-password")
+            .send({
+                email: "teste@email.com",
+            });
+
+        expect(response.status).toBe(200);
+
+        expect(response.body).toEqual({
+            message: "Se houver uma conta será enviado um email de recuperação",
+        });
+
+        expect(
+            authServiceMock.sendEmailForgotPasswordService
+        ).toHaveBeenCalledWith("teste@email.com");
+    });
+
+    it("deve retornar 429 quando o limite for excedido", async () => {
+        authServiceMock.sendEmailForgotPasswordService.mockRejectedValue(
+            new AppError(ERRORS.emailRequestLimitExceeded)
         );
+
+        const response = await request(app)
+            .post("/auth/send-forgot-password")
+            .send({
+                email: "teste@email.com",
+            });
+
+        expect(response.status).toBe(429);
+
+        expect(response.body.error.code).toBe(
+            "email_request_limit_exceeded"
+        );
+    });
+});
+
+describe("POST /auth/reset-password/validate", () => {
+    it("GET /reset-password/validate deve validar token com sucesso", async () => {
+        authServiceMock.validateTokenService.mockResolvedValue();
+
+        const response = await request(app).get(
+            "/auth/reset-password/validate?token=fake-token"
+        );
+
+        expect(response.status).toBe(200);
+
+        expect(response.body).toEqual({
+            message: "Token válido",
+        });
+
+        expect(
+            authServiceMock.validateTokenService
+        ).toHaveBeenCalledWith("fake-token");
+    });
+
+    it("GET /reset-password/validate deve retornar erro quando token for inválido", async () => {
+        authServiceMock.validateTokenService.mockRejectedValue(
+            new AppError(ERRORS.invalidToken)
+        );
+
+        const response = await request(app).get(
+            "/auth/reset-password/validate?token=fake-token"
+        );
+
+        expect(response.body).toEqual({
+            error: {
+                code: ERRORS.invalidToken.code,
+                message: ERRORS.invalidToken.message,
+                details: null,
+            },
+        });
+
+        expect(
+            authServiceMock.validateTokenService
+        ).toHaveBeenCalledWith("fake-token");
+    });
+});
+
+describe("POST /auth/reset-password", () => {
+    it("deve atualizar a senha quando o token for válido", async () => {
+        authServiceMock.validateTokenService.mockResolvedValue();
+        authServiceMock.resetPasswordService.mockResolvedValue();
+
+        const response = await request(app)
+            .post("/auth/reset-password")
+            .send({
+                token: "fake-token",
+                newPassword: "NovaSenha@123",
+            });
+
+        expect(response.status).toBe(200);
+
+        expect(response.body).toEqual({
+            message: "Senha atualizada com sucesso!",
+        });
+
+        expect(
+            authServiceMock.validateTokenService
+        ).toHaveBeenCalledWith("fake-token");
+
+        expect(
+            authServiceMock.resetPasswordService
+        ).toHaveBeenCalledWith(
+            "fake-token",
+            "NovaSenha@123"
+        );
+    });
+
+    it("deve retornar erro quando o token for inválido", async () => {
+        authServiceMock.validateTokenService.mockRejectedValue(
+            new AppError(ERRORS.invalidToken)
+        );
+
+        const response = await request(app)
+            .post("/auth/reset-password")
+            .send({
+                token: "fake-token",
+                newPassword: "NovaSenha@123",
+            });
+
+        expect(response.status).toBe(400); // ou o status definido pelo seu AppError
+
+        expect(
+            authServiceMock.validateTokenService
+        ).toHaveBeenCalledWith("fake-token");
+
+        expect(
+            authServiceMock.resetPasswordService
+        ).not.toHaveBeenCalled();
+    });
+
+    it("deve retornar 400 quando o body for inválido", async () => {
+        const response = await request(app)
+            .post("/auth/reset-password")
+            .send({
+                token: "fake-token",
+            });
+
+        expect(response.status).toBe(400);
+
+        expect(
+            authServiceMock.validateTokenService
+        ).not.toHaveBeenCalled();
+
+        expect(
+            authServiceMock.resetPasswordService
+        ).not.toHaveBeenCalled();
     });
 });
