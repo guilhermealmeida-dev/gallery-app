@@ -132,7 +132,7 @@
       }
     }
   },
-  
+
   "InvalidToken": {
     "description": "Bad Request",
     "content": {
@@ -302,6 +302,43 @@
                     "code": {
                       "type": "string",
                       "example": "user_not_verified"
+                    },
+                    "details": {
+                      "nullable": true,
+                      "example": null
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        }
+      }
+    }
+  },
+
+  "NotFoundUser": {
+    "description": "Error: Not Found",
+    "content": {
+      "application/json": {
+        "schema": {
+          "allOf": [
+            {
+              "$ref": "./schemas/generic-schema.json#/ErrorModel"
+            },
+            {
+              "type": "object",
+              "properties": {
+                "error": {
+                  "type": "object",
+                  "properties": {
+                    "message": {
+                      "type": "string",
+                      "example": "Usuário não encontrado"
+                    },
+                    "code": {
+                      "type": "string",
+                      "example": "not-found-user"
                     },
                     "details": {
                       "nullable": true,

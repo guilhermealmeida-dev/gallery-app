@@ -9,6 +9,13 @@ export async function findUserByEmailRepository(email: string) {
     });
 }
 
+//Busca usuurio pelo email
+export async function findUserByIdRepository(id: string) {
+    return prisma.user.findUnique({
+        where: { id: id }
+    });
+}
+
 //Cria um usuario
 export async function createUserRepository(data: UserCreateInput) {
     return prisma.user.create({

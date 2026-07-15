@@ -1,8 +1,11 @@
-import { UserOutputDto } from "./user.ts"
-
 export type AuthLoginOutputDto = {
     token: string,
-    user: UserOutputDto
+    user: {
+        id: string,
+        name: string,
+        email: string
+        avatar?: Buffer | null,
+    }
 }
 
 export type AuthPayload = {

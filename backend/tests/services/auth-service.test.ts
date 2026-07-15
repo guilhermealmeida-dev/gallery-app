@@ -5,9 +5,8 @@ import {
     it,
     jest,
 } from "@jest/globals";
-import { countEmailConfirmationByUserId } from "../../src/repositories/confirmation-email-repository.ts";
 import { AppError, ERRORS } from "../../src/types/error.ts";
-import { UpdateObjectEncryption$ } from "@aws-sdk/client-s3";
+
 type ForgotPasswordTemplateProvider =
     typeof import("../../src/providers/mail/forgot-password-template.ts");
 
@@ -128,6 +127,16 @@ const storageProviderMock = {
 };
 
 jest.unstable_mockModule(
+    "../../src/utils/jwt.js",
+    () => ({
+        jwtGenerateToken: jest.fn(),
+        jwtVerify: jest.fn(),
+        jwtdecode: jest.fn(),
+    })
+);
+const jwtModule = await import("../../src/utils/jwt.js");
+
+jest.unstable_mockModule(
     "../../src/providers/mail/password-updated-template.ts",
     () => passwordUpdatedTemplateMock
 );
@@ -135,11 +144,6 @@ jest.unstable_mockModule(
 jest.unstable_mockModule(
     "../../src/providers/mail/forgot-password-template.ts",
     () => forgotPasswordTemplateMock
-);
-
-jest.unstable_mockModule(
-    "../../src/providers/mail/confirm-email-template.ts",
-    () => confirmEmailTemplateMock
 );
 
 jest.unstable_mockModule(
@@ -177,18 +181,8 @@ jest.unstable_mockModule(
 );
 
 jest.unstable_mockModule(
-    "../../src/providers/s3-storage.ts",
-    () => storageProviderMock
-);
-
-jest.unstable_mockModule(
     "../../src/providers/mail/confirm-email-template.ts",
     () => confirmEmailTemplateMock
-);
-
-jest.unstable_mockModule(
-    "../../src/providers/s3-storage.ts",
-    () => storageProviderMock
 );
 
 const {
@@ -381,6 +375,8 @@ describe("loginUserService", () => {
             Buffer.from("fake-avatar")
         );
 
+        jwtModule.jwtGenerateToken.mockResolvedValue("fake-token");
+
         const result = await loginUserService({
             email: "john@email.com",
             password: "12345678",
@@ -388,13 +384,7 @@ describe("loginUserService", () => {
 
         expect(
             userRepositoryMock.findUserByEmailRepository
-        ).toHaveBeenCalledTimes(1);
-
-        expect(
-            userRepositoryMock.findUserByEmailRepository
         ).toHaveBeenCalledWith("john@email.com");
-
-        expect(bcryptMock.default.compare).toHaveBeenCalledTimes(1);
 
         expect(bcryptMock.default.compare).toHaveBeenCalledWith(
             "12345678",
@@ -403,11 +393,21 @@ describe("loginUserService", () => {
 
         expect(storageProviderMock.getStorageFile).toHaveBeenCalledTimes(1);
 
+        expect(storageProviderMock.getStorageFile).toHaveBeenCalledWith(
+            "PROFILES",
+            "avatar.png"
+        );
+
+        jwtModule.jwtGenerateToken.mockReturnValue("fake-token");
+
         expect(result).toEqual({
-            id: "user-id",
-            name: "John Doe",
-            email: "john@email.com",
-            avatar: Buffer.from("fake-avatar"),
+            token: "fake-token",
+            user: {
+                id: "user-id",
+                name: "John Doe",
+                email: "john@email.com",
+                avatar: Buffer.from("fake-avatar"),
+            },
         });
     });
 
@@ -423,22 +423,25 @@ describe("loginUserService", () => {
 
         bcryptMock.default.compare.mockResolvedValue(true);
 
+        jwtModule.jwtGenerateToken.mockReturnValue("fake-token");
+
         const result = await loginUserService({
             email: "john@email.com",
             password: "12345678",
         });
 
-        expect(storageProviderMock.getStorageFile).not.toHaveBeenCalled();
-
         expect(result).toEqual({
-            id: "user-id",
-            name: "John Doe",
-            email: "john@email.com",
-            avatar: null,
+            token: "fake-token",
+            user: {
+                id: "user-id",
+                name: "John Doe",
+                email: "john@email.com",
+                avatar: null,
+            },
         });
     });
 
-    it("deve lançar erro quando o usuário não existir", async () => {
+    it("deve lançar invalidCredentials quando o usuário não existir", async () => {
         userRepositoryMock.findUserByEmailRepository.mockResolvedValue(null);
 
         await expect(
@@ -446,14 +449,13 @@ describe("loginUserService", () => {
                 email: "john@email.com",
                 password: "12345678",
             })
-        ).rejects.toThrow();
+        ).rejects.toEqual(new AppError(ERRORS.invalidCredentials));
 
         expect(bcryptMock.default.compare).not.toHaveBeenCalled();
-
         expect(storageProviderMock.getStorageFile).not.toHaveBeenCalled();
     });
 
-    it("deve lançar erro quando o usuário não estiver verificado", async () => {
+    it("deve lançar userNotVerified quando o usuário não estiver verificado", async () => {
         userRepositoryMock.findUserByEmailRepository.mockResolvedValue({
             id: "user-id",
             name: "John Doe",
@@ -468,14 +470,13 @@ describe("loginUserService", () => {
                 email: "john@email.com",
                 password: "12345678",
             })
-        ).rejects.toThrow();
+        ).rejects.toEqual(new AppError(ERRORS.userNotVerified));
 
         expect(bcryptMock.default.compare).not.toHaveBeenCalled();
-
         expect(storageProviderMock.getStorageFile).not.toHaveBeenCalled();
     });
 
-    it("deve lançar erro quando a senha estiver incorreta", async () => {
+    it("deve lançar invalidCredentials quando a senha estiver incorreta", async () => {
         userRepositoryMock.findUserByEmailRepository.mockResolvedValue({
             id: "user-id",
             name: "John Doe",
@@ -492,9 +493,12 @@ describe("loginUserService", () => {
                 email: "john@email.com",
                 password: "senha-incorreta",
             })
-        ).rejects.toThrow();
+        ).rejects.toEqual(new AppError(ERRORS.invalidCredentials));
 
-        expect(bcryptMock.default.compare).toHaveBeenCalledTimes(1);
+        expect(bcryptMock.default.compare).toHaveBeenCalledWith(
+            "senha-incorreta",
+            "hashed-password"
+        );
 
         expect(storageProviderMock.getStorageFile).not.toHaveBeenCalled();
     });

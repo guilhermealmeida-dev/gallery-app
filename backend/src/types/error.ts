@@ -116,6 +116,13 @@ export const ERRORS = {
         message: "Autenticação necessária",
         status: ErrorStatus.TOO_MANY_REQUESTS,
         details: null
+    },
+
+    notfoundUser:{
+         code: "not-found-user",
+        message: "Usuário não encontrado",
+        status: ErrorStatus.NOT_FOUND,
+        details: null
     }
 
 } as const satisfies Record<string, AppErrorData>;

@@ -4,6 +4,7 @@ import { errorHandler } from './middlewares/error-handler.ts';
 import { authRoute } from './routes/auth-routes.ts';
 import { swaggerInit } from './swagger.ts';
 import path from 'node:path';
+import { userRouter } from './routes/user.route.ts';
 
 const app: Express = express();
 
@@ -17,7 +18,8 @@ app.get('/', (req: Request, res: Response) => {
 });
 
 //Routes
-app.use("/auth",authRoute);
+app.use("/auth", authRoute);
+app.use("/user", userRouter);
 
 //Middlewares
 app.use(errorLog);

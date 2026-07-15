@@ -17,7 +17,7 @@
       "description": "Operações de autenticação"
     },
     {
-      "name": "Users",
+      "name": "User",
       "description": "Operações relacionadas aos usuários"
     }
   ],
@@ -36,7 +36,7 @@
     "/auth/confirm-email": {
       "$ref": "./paths/auth/confirm-email.json"
     },
-     "/auth/send-forgot-password": {
+    "/auth/send-forgot-password": {
       "$ref": "./paths/auth/send-forgot-password.json"
     },
     "/auth/reset-password/validate": {
@@ -44,6 +44,10 @@
     },
     "/auth/reset-password": {
       "$ref": "./paths/auth/reset-password.json"
+    },
+
+    "/user/me": {
+      "$ref": "./paths/user/me.json"
     }
   },
   "components": {

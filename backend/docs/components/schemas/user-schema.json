@@ -20,13 +20,6 @@
         "format": "email",
         "description": "E-mail do usuário.",
         "example": "joao.silva@email.com"
-      },
-      "avatar": {
-        "type": "string",
-        "format": "uri",
-        "nullable": true,
-        "description": "URL da foto de perfil do usuário.",
-        "example": "https://api.example.com/storage/avatars/c1a2b3d4-e5f6-7890-abcd-1234567890ef.jpg"
       }
     },
     "required": [

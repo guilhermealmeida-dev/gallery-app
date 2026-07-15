@@ -4,9 +4,8 @@ export type UpdateUser = {
     isVerify?: boolean
 }
 
-export type UserOutputDto = {
-    id: string,
-    name: string,
-    email: string
-    avatar?: Buffer | null,
+export type UserOutputDto={
+    id:string,
+    name:string,
+    email:string
 }

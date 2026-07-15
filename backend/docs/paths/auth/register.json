@@ -3,6 +3,7 @@
     "summary": "Cadastro de Usuário",
     "description": "Realiza o cadastro de um novo usuário e envia um código de confirmação para o e-mail informado.",
     "tags": ["Auth"],
+    "security": [],
     "requestBody": {
       "required": true,
       "content": {

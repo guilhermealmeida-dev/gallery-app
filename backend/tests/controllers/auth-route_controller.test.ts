@@ -33,16 +33,6 @@ jest.unstable_mockModule(
     () => authServiceMock
 );
 
-const jwt = await import("../../src/utils/jwt.ts");
-const jwtMock = {
-    ...jwt,
-    jwtGenerateToken: jest.fn<typeof jwt.jwtGenerateToken>(),
-};
-jest.unstable_mockModule(
-    "../../src/utils/jwt.ts",
-    () => jwtMock
-);
-
 const { default: app } = await import("../../src/app.js");
 
 beforeEach(() => {
@@ -92,15 +82,17 @@ describe("POST /auth/register", () => {
 
 describe("POST /auth/login", () => {
     it("deve retornar 200 quando as credenciais forem válidas", async () => {
-        const user = {
-            id: "1",
-            name: "John Doe",
-            email: "john@email.com",
-            avatar: null,
+        const authUser = {
+            token:"fake-token",
+            user: {
+                id: "1",
+                name: "John Doe",
+                email: "john@email.com",
+                avatar: null
+            }
         };
 
-        authServiceMock.loginUserService.mockResolvedValue(user as any);
-        jwtMock.jwtGenerateToken.mockResolvedValue("jwt-token");
+        authServiceMock.loginUserService.mockResolvedValue({authUser} as any);
 
         const response = await request(app)
             .post("/auth/login")
@@ -116,21 +108,11 @@ describe("POST /auth/login", () => {
             password: "12345678",
         });
 
-        expect(jwtMock.jwtGenerateToken).toHaveBeenCalledTimes(1);
-
-        expect(jwtMock.jwtGenerateToken).toHaveBeenCalledWith({
-            id: "1",
-            email: "john@email.com",
-        });
-
         expect(response.status).toBe(200);
 
         expect(response.headers["content-type"]).toMatch(/json/);
 
-        expect(response.body).toEqual({
-            token: "jwt-token",
-            user,
-        });
+        expect(response.body).toEqual({ authUser });
     });
 
     it("deve retornar 400 quando o body for inválido", async () => {
@@ -141,8 +123,6 @@ describe("POST /auth/login", () => {
             });
 
         expect(authServiceMock.loginUserService).not.toHaveBeenCalled();
-
-        expect(jwtMock.jwtGenerateToken).not.toHaveBeenCalled();
 
         expect(response.status).toBe(400);
 
@@ -162,8 +142,6 @@ describe("POST /auth/login", () => {
             });
 
         expect(authServiceMock.loginUserService).toHaveBeenCalledTimes(1);
-
-        expect(jwtMock.jwtGenerateToken).not.toHaveBeenCalled();
 
         expect(response.status).toBe(401);
     });

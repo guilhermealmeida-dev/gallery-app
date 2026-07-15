@@ -24,18 +24,7 @@ export async function loginController(request: Request, response: Response, next
     try {
         const dto: AuthLoginUserInputDto = request.body;
         const user = await loginUserService(dto);
-
-        const payload: AuthPayload = {
-            id: user.id,
-            email: user.email
-        }
-        const token = await jwtGenerateToken(payload);
-        const data: AuthLoginOutputDto = {
-            token: token,
-            user: user
-        }
-
-        response.status(200).json(data);
+        response.status(200).json(user);
     } catch (error) {
         next(error);
     }

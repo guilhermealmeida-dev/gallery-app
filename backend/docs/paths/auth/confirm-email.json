@@ -3,6 +3,7 @@
     "summary": "Confirmação de e-mail do Membro",
     "description": "Confirma o e-mail de um membro a partir de um token de verificação enviado por e-mail.",
     "tags": ["Auth"],
+    "security": [],
     "parameters": [
       {
         "name": "token",
@@ -33,7 +34,7 @@
           }
         }
       },
-      
+
       "401": {
         "$ref": "../../components/responses.json#/InvalidToken"
       },

@@ -4,6 +4,7 @@ import { authEmailUserSchema, authLoginUserSchema, authRegisterUserSchema, authR
 import { confirmEmailController, resetPasswordController, loginController, registerUserController, sendEmailForgotPasswordController, validateTokenController } from "../controllers/auth-controller.ts";
 import { upload } from "../utils/upload.ts";
 import { validateSingleImage } from "../middlewares/validate-single-image.ts";
+import { authGuard } from "../middlewares/auth-guard.ts";
 
 const router = Router();
 

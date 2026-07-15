@@ -3,6 +3,7 @@
     "summary": "Autenticação de Membro",
     "description": "Realiza a autenticação do usuário comum (Membro) e retorna um token JWT junto com as informações do usuário autenticado.",
     "tags": ["Auth"],
+    "security": [],
     "requestBody": {
       "required": true,
       "content": {

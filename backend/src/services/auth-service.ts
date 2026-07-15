@@ -8,11 +8,12 @@ import { ENVIROMENTS } from "../env-config.ts";
 import { confirmEmailTemplate } from "../providers/mail/confirm-email-template.ts";
 import { sendEmail } from "../providers/mail/node-mail.ts";
 import { v4 as uuidv4 } from 'uuid';
-import { UserOutputDto } from "../types/user.ts";
 import { countEmailConfirmationByUserId, createEmailConfirmationReposytory, deletEmailConfirmationReposytory, findValidEmailConfirmationRepository } from "../repositories/confirmation-email-repository.ts";
 import { welcomeTemplate } from "../providers/mail/welcome-template.ts";
 import { forgotPasswordTemplate } from "../providers/mail/forgot-password-template.ts";
 import { passwordUpdatedTemplate } from "../providers/mail/password-updated-template.ts";
+import { AuthLoginOutputDto, AuthPayload } from "../types/auth.ts";
+import { jwtGenerateToken } from "../utils/jwt.ts";
 
 //Servico de registro de usuario
 export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?: Express.Multer.File): Promise<void> {
@@ -48,29 +49,39 @@ export async function registerUserService(dto: AuthRegisterUserInputDto, avatar?
 }
 
 //Servico de login do usuario
-export async function loginUserService(dto: AuthLoginUserInputDto): Promise<UserOutputDto> {
-    const userdb = await findUserByEmailRepository(dto.email);
-    if (!userdb) {
+export async function loginUserService(dto: AuthLoginUserInputDto): Promise<AuthLoginOutputDto> {
+    const user = await findUserByEmailRepository(dto.email);
+    if (!user) {
         throw new AppError(ERRORS.invalidCredentials);
     }
 
-    if (!userdb.isVerify) {
+    if (!user.isVerify) {
         throw new AppError(ERRORS.userNotVerified);
     }
 
-    const isValid = await bcrypt.compare(dto.password, userdb.password);
+    const isValid = await bcrypt.compare(dto.password, user.password);
 
     if (!isValid) {
         throw new AppError(ERRORS.invalidCredentials);
     }
 
-    const avatar = userdb.avatar ? await getStorageFile(ENVIROMENTS.storage.buckets.profiles, userdb.avatar) : null;
+    const avatar = user.avatar ? await getStorageFile(ENVIROMENTS.storage.buckets.profiles, user.avatar) : null;
+
+    const payload: AuthPayload = {
+        id: user.id,
+        email: user.email
+    }
+
+    const token = await jwtGenerateToken(payload);
 
     return {
-        id: userdb.id,
-        name: userdb.name,
-        email: userdb.email,
-        avatar: avatar
+        token: token,
+        user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            avatar: avatar
+        }
     };
 }
 
