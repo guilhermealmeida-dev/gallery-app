@@ -1,5 +1,4 @@
-import { UserCreateInput } from "../../generated/prisma/models.ts";
-import { UpdateUser } from "../types/user.ts";
+import { UserCreateInput, UserUpdateInput } from "../../generated/prisma/models.ts";
 import { prisma } from "../providers/prisma-client.ts";
 
 //Busca usuurio pelo email
@@ -23,10 +22,13 @@ export async function createUserRepository(data: UserCreateInput) {
     });
 }
 
-export async function updateUserRepository(userId: string, data: UpdateUser) {
+export async function updateUserRepository(userId: string, data: UserUpdateInput) {
     return prisma.user.update({
         where: {
             id: userId
+        },
+        include: {
+            albums: true
         },
         data: data
     })

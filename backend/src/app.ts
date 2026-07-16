@@ -4,7 +4,7 @@ import { errorHandler } from './middlewares/error-handler.ts';
 import { authRoute } from './routes/auth-routes.ts';
 import { swaggerInit } from './swagger.ts';
 import path from 'node:path';
-import { userRouter } from './routes/user.route.ts';
+import { userRouter } from './routes/user-route.ts';
 
 const app: Express = express();
 

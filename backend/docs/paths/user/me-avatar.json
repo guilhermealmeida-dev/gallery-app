@@ -1,0 +1,75 @@
+{
+  "put": {
+    "summary": "Atualizar Avatar do Usuário Autenticado",
+    "description": "Atualiza a imagem de perfil do usuário autenticado utilizando um arquivo enviado no campo `avatar`.",
+    "tags": ["User"],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "multipart/form-data": {
+          "schema": {
+            "type": "object",
+            "required": ["avatar"],
+            "properties": {
+              "avatar": {
+                "type": "string",
+                "format": "binary",
+                "description": "Imagem do avatar do usuário."
+              }
+            }
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "OK.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "avatar": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "Imagem do avatar do usuário."
+                }
+              }
+            }
+          }
+        }
+      },
+      "400": {
+        "description": "Arquivo inválido ou requisição malformada.",
+        "content": {
+          "application/json": {
+            "examples": {
+              "ImagemObrigatoria": {
+                "summary": "Imagem não enviada",
+                "value": {
+                  "message": "Imagem é obrigatória."
+                }
+              },
+              "TipoImagemInvalido": {
+                "summary": "Tipo de imagem inválido",
+                "value": {
+                  "message": "Tipo de imagem inválido."
+                }
+              }
+            }
+          }
+        },
+        "$ref": "../../components/responses.json#/ValidatorRequest-BadRequest"
+      },
+      "401": {
+        "$ref": "../../components/responses.json#/Auth-Unauthorized"
+      },
+      "404": {
+        "$ref": "../../components/responses.json#/NotFoundUser"
+      },
+      "500": {
+        "$ref": "../../components/responses.json#/InternalServerError"
+      }
+    }
+  }
+}

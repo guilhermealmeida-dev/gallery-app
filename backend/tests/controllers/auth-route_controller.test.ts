@@ -190,7 +190,7 @@ describe("POST /auth/send-forgot-password", () => {
                 email: "teste@email.com",
             });
 
-        expect(response.status).toBe(200);
+        expect(response.status).toBe(200);  
 
         expect(response.body).toEqual({
             message: "Se houver uma conta será enviado um email de recuperação",

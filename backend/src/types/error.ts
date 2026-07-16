@@ -61,6 +61,12 @@ export const ERRORS = {
         status: ErrorStatus.BAD_REQUEST
     },
 
+    riqueredImageError: {
+        code: "riquered_image",
+        message: "A imagem é obrigatória.",
+        status: ErrorStatus.BAD_REQUEST
+    },
+
     syntaxeJsonError: {
         code: "syntaxe_json",
         message: "Json Inválido",
@@ -114,15 +120,15 @@ export const ERRORS = {
     unauthorized: {
         code: "unauthorized",
         message: "Autenticação necessária",
-        status: ErrorStatus.TOO_MANY_REQUESTS,
+        status: ErrorStatus.UNAUTHORIZED,
         details: null
     },
 
-    notfoundUser:{
-         code: "not-found-user",
+    notfoundUser: {
+        code: "not-found-user",
         message: "Usuário não encontrado",
         status: ErrorStatus.NOT_FOUND,
         details: null
-    }
+    },
 
 } as const satisfies Record<string, AppErrorData>;

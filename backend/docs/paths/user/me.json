@@ -3,11 +3,6 @@
     "summary": "Obter Usuário Autenticado",
     "description": "Retorna os dados do usuário autenticado com base no token JWT enviado na requisição.",
     "tags": ["User"],
-    "security": [
-      {
-        "bearerAuth": []
-      }
-    ],
     "responses": {
       "200": {
         "description": "OK",
@@ -28,6 +23,46 @@
         "$ref": "../../components/responses.json#/NotFoundUser"
       },
 
+      "500": {
+        "$ref": "../../components/responses.json#/InternalServerError"
+      }
+    }
+  },
+
+  "put": {
+    "summary": "Atualizar Usuário Autenticado",
+    "description": "Atualiza os dados do usuário autenticado com base no token JWT enviado na requisição e retorna os dados atualizados.",
+    "tags": ["User"],
+    "requestBody": {
+      "required": true,
+      "content": {
+        "application/json": {
+          "schema": {
+            "$ref": "../../components/schemas/user-schema.json#/UserUpdateSchema"
+          }
+        }
+      }
+    },
+    "responses": {
+      "200": {
+        "description": "Usuário atualizado com sucesso.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "../../components/schemas/user-schema.json#/UserOutputSchema"
+            }
+          }
+        }
+      },
+      "400": {
+        "$ref": "../../components/responses.json#/ValidatorRequest-BadRequest"
+      },
+      "401": {
+        "$ref": "../../components/responses.json#/Auth-Unauthorized"
+      },
+      "404": {
+        "$ref": "../../components/responses.json#/NotFoundUser"
+      },
       "500": {
         "$ref": "../../components/responses.json#/InternalServerError"
       }

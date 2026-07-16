@@ -1,11 +1,8 @@
-export type UpdateUser = {
-    avatar?: string,
-    password?: string,
-    isVerify?: boolean
-}
+import { AlbunsOutputDto } from "./albums.ts"
 
-export type UserOutputDto={
-    id:string,
-    name:string,
-    email:string
+export type UserOutputDto = {
+    id: string,
+    name: string,
+    email: string
+    albuns: AlbunsOutputDto[]
 }

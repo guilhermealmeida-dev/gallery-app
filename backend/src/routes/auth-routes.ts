@@ -12,7 +12,7 @@ router.post(
     "/register",
     upload.single("avatar"),
     requestBodyValidator(authRegisterUserSchema),
-    validateSingleImage(),
+    validateSingleImage(false),
     (request: Request, response: Response, next: NextFunction) => registerUserController(request, response, next)
 );
 

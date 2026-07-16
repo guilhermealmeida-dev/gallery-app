@@ -5,7 +5,7 @@ import { jwtVerify } from "../utils/jwt.ts";
 export async function authGuard(request: Request, response: Response, next: NextFunction) {
     try {
         const authHeader = request.headers.authorization;
-        
+
         if (!authHeader) {
             throw new AppError(ERRORS.unauthorized);
         }

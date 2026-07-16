@@ -1,31 +1,55 @@
 {
+  "UserUpdateSchema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "type": "string",
+        "example": "Usern name"
+      },
+      "password": {
+        "type": "string",
+        "format": "text",
+        "example": "123456"
+      }
+    }
+  },
+  
   "UserOutputSchema": {
     "type": "object",
-    "title": "UserOutputSchema",
-    "description": "Representa o usuário retornado pela API.",
     "properties": {
       "id": {
         "type": "string",
-        "format": "uuid",
-        "description": "Identificador único do usuário.",
-        "example": "c1a2b3d4-e5f6-7890-abcd-1234567890ef"
+        "format": "uuid"
       },
       "name": {
-        "type": "string",
-        "description": "Nome completo do usuário.",
-        "example": "João Silva"
+        "type": "string"
       },
       "email": {
         "type": "string",
-        "format": "email",
-        "description": "E-mail do usuário.",
-        "example": "joao.silva@email.com"
+        "format": "email"
+      },
+      "albuns": {
+        "type": "array",
+        "items": {
+          "$ref": "#/AlbumOutputSchema"
+        }
       }
-    },
-    "required": [
-      "id",
-      "name",
-      "email"
-    ]
+    }
+  },
+  "AlbumOutputSchema": {
+    "type": "object",
+    "properties": {
+      "id": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "name": {
+        "type": "string"
+      },
+      "userid": {
+        "type": "string",
+        "format": "uuid"
+      }
+    }
   }
 }

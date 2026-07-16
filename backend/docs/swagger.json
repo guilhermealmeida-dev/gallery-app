@@ -23,7 +23,7 @@
   ],
   "security": [
     {
-      "BearerAuth": []
+      "bearerAuth": []
     }
   ],
   "paths": {
@@ -48,6 +48,9 @@
 
     "/user/me": {
       "$ref": "./paths/user/me.json"
+    },
+    "/user/me/avatar": {
+      "$ref": "./paths/user/me-avatar.json"
     }
   },
   "components": {

@@ -1,17 +1,17 @@
 {
-  "Member.AuthRegisterUserInputSchema": {
+  "AuthRegisterUserInputSchema": {
     "$ref": "./schemas/auth-schema.json#/AuthRegisterUserInputSchema"
   },
-  "Auth.AuthenticateInputSchema": {
+  "AuthenticateInputSchema": {
     "$ref": "./schemas/auth-schema.json#/AuthenticateInputSchema"
   },
-  "Auth.AuthenticateOutputSchema": {
+  "AuthenticateOutputSchema": {
     "$ref": "./schemas/auth-schema.json#/AuthenticateOutputSchema"
   },
-  "Member.UserOutputSchema": {
+  "UserOutputSchema": {
     "$ref": "./schemas/user-schema.json#/UserOutputSchema"
   },
-  "Error.ErrorModel": {
+  "ErrorModel": {
     "$ref": "./schemas/generic-schema.json#/ErrorModel"
   }
 }
