@@ -70,3 +70,15 @@ export async function updateUserAvatarService(id: string, avatar: Express.Multer
 
     return await getStorageFile(ENVIROMENTS.storage.buckets.profiles, avatarPath);
 }
+
+export async function getUserAvatarService(id: string): Promise<Buffer | null> {
+    const user = await findUserByIdRepository(id);
+
+    if (!user) {
+        throw new AppError(ERRORS.notfoundUser);
+    }
+
+    if (!user.avatar) return null;
+
+    return await getStorageFile(ENVIROMENTS.storage.buckets.profiles, user.avatar);
+}

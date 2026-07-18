@@ -71,5 +71,39 @@
         "$ref": "../../components/responses.json#/InternalServerError"
       }
     }
+  },
+
+  "get": {
+    "summary": "Buscar Avatar do Usuário Autenticado",
+    "description": "Busca a imagem de perfil do usuário autenticado",
+    "tags": ["User"],
+    "responses": {
+      "200": {
+        "description": "OK.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "type": "object",
+              "properties": {
+                "avatar": {
+                  "type": "string",
+                  "format": "binary",
+                  "description": "Imagem do avatar do usuário."
+                }
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "$ref": "../../components/responses.json#/Auth-Unauthorized"
+      },
+      "404": {
+        "$ref": "../../components/responses.json#/NotFoundUser"
+      },
+      "500": {
+        "$ref": "../../components/responses.json#/InternalServerError"
+      }
+    }
   }
 }

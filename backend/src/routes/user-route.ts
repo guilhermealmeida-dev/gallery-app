@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response, Router } from "express";
 import { authGuard } from "../middlewares/auth-guard.ts";
-import { getUserController, updateUserAvatarController, updateUserController } from "../controllers/user-controller.ts";
+import { gertUserAvatarController, getUserController, updateUserAvatarController, updateUserController } from "../controllers/user-controller.ts";
 import { requestBodyValidator } from "../middlewares/request-body-validator.ts";
 import { userUpdateSchema } from "../schemas/user.schema.ts";
 import { upload } from "../utils/upload.ts";
@@ -25,6 +25,11 @@ router.put(
     upload.single("avatar"),
     validateSingleImage(true),
     (request: Request, response: Response, next: NextFunction) => updateUserAvatarController(request, response, next)
+);
+
+router.get(
+    "/me/avatar",
+    (request: Request, response: Response, next: NextFunction) => gertUserAvatarController(request, response, next)
 );
 
 export { router as userRouter };

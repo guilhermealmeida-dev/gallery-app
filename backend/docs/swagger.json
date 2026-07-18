@@ -50,7 +50,7 @@
       "$ref": "./paths/user/me.json"
     },
     "/user/me/avatar": {
-      "$ref": "./paths/user/me-avatar.json"
+      "$ref": "./paths/user/me_avatar.json"
     }
   },
   "components": {

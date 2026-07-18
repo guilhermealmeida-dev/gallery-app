@@ -9,8 +9,6 @@ import {
 import request from "supertest";
 import { AppError, ERRORS } from "../../src/types/error.ts";
 
-
-// Mock do middleware de autenticação
 jest.unstable_mockModule(
     "../../src/middlewares/auth-guard.ts",
     () => ({
@@ -28,12 +26,9 @@ jest.unstable_mockModule(
     })
 );
 
-
-// Import do serviço após o mock
 const userService = await import(
     "../../src/services/user-service.ts"
 );
-
 
 const userServiceMock = {
     ...userService,
@@ -46,26 +41,22 @@ const userServiceMock = {
 
     updateUserAvatarService:
         jest.fn<typeof userService.updateUserAvatarService>(),
+    getUserAvatarService: jest.fn<typeof userService.getUserAvatarService>(),
+
 };
 
-
-// Mock do service
 jest.unstable_mockModule(
     "../../src/services/user-service.ts",
     () => userServiceMock
 );
 
-
-// Import da aplicação sempre por último
 const { default: app } = await import(
     "../../src/app.ts"
 );
 
-
 beforeEach(() => {
     jest.clearAllMocks();
 });
-
 
 describe("GET /user/me", () => {
 
@@ -130,8 +121,6 @@ describe("GET /user/me", () => {
     });
 
 });
-
-
 
 describe("PUT /user/me", () => {
 
@@ -258,8 +247,6 @@ describe("PUT /user/me", () => {
 
 });
 
-
-
 describe("PUT /users/me/avatar", () => {
 
 
@@ -366,4 +353,63 @@ describe("PUT /users/me/avatar", () => {
         );
     });
 
+});
+
+describe("GET /user/me/avatar", () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it("deve retornar o avatar do usuário", async () => {
+        const avatar = Buffer.from("fake-avatar");
+
+        userServiceMock.getUserAvatarService.mockResolvedValue(avatar);
+
+        const response = await request(app)
+            .get("/user/me/avatar");
+
+        expect(response.status).toBe(200);
+        expect(response.body).toEqual({
+            avatar: {
+                type: "Buffer",
+                data: [...avatar],
+            },
+        });
+
+        expect(userServiceMock.getUserAvatarService)
+            .toHaveBeenCalledWith("user-id");
+    });
+
+    it("deve retornar erro quando o serviço lançar AppError", async () => {
+        userServiceMock.getUserAvatarService.mockRejectedValue(
+            new AppError(ERRORS.notfoundUser)
+        );
+
+        const response = await request(app)
+            .get("/user/me/avatar");
+
+        expect(response.status).toBe(ERRORS.notfoundUser.status);
+
+        expect(response.body).toEqual({
+            error: {
+                code: ERRORS.notfoundUser.code,
+                message: ERRORS.notfoundUser.message,
+                details: null,
+            },
+        });
+
+        expect(userServiceMock.getUserAvatarService)
+            .toHaveBeenCalledWith("user-id");
+    });
+
+    it("deve retornar erro interno quando ocorrer erro inesperado", async () => {
+        userServiceMock.getUserAvatarService.mockRejectedValue(
+            new Error("Internal Error")
+        );
+
+        const response = await request(app)
+            .get("/user/me/avatar");
+
+        expect(response.status).toBe(500);
+    });
 });
